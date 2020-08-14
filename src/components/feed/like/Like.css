@@ -1,0 +1,44 @@
+.like-wrapper {
+  position: relative;
+  user-select: none;
+}
+
+.like-button {
+  display: block;
+}
+
+.heart-outer {
+  position: absolute;
+  left: -30px;
+  top: -15px;
+  z-index: 9;
+}
+
+.heart-inner {
+  position: relative;
+  margin: 0 10px;
+  width: 30px;
+  height: 30px;
+  display: inline-block;
+  transform: rotate(-45deg);
+}
+
+.heart-inner::before,
+.heart-inner::after {
+  content: '';
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: inherit;
+}
+
+.heart-inner::before {
+  top: -15px;
+  left: 0;
+}
+
+.heart-inner::after {
+  top: 0;
+  left: 15px;
+}
