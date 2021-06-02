@@ -20,6 +20,10 @@
   "eslintConfig": {
     "extends": "react-app"
   },
+  "resolutions": {
+    "browserslist": "^4.16.5",
+    "ws": "^7.4.6"
+  },
   "browserslist": {
     "production": [
       ">0.2%",
