@@ -12,7 +12,7 @@
       },
       "metadata": {
         "streamTitle": "My cool live stream",
-        "userAvatar": "https://assets.codepen.io/2960061/hedgehog.png",
+        "userAvatar": "https://d39ii5l128t5ul.cloudfront.net/assets/animals_rounded/hedgehog.png",
         "userName": "Harry Hedgehog",
         "userColors": {
           "primary": "#3E9963",
@@ -25,14 +25,14 @@
       "stream": {
         "channelArn": "arn:aws:ivs:us-west-2:XXXXXXXXXXXX:channel/XXXXXXXXXXXX",
         "health": "HEALTHY",
-        "playbackUrl": "https://usher.ttvnw.net/api/lvs/hls/lvs.lvs-client-example.9ee3f80d-c1e4-49a7-8dd4-288208f18509.m3u8",
+        "playbackUrl": "https://4c62a87c1810.us-west-2.playback.live-video.net/api/video/v1/us-west-2.049054135175.channel.iNMK0w9JnUkC.m3u8",
         "startTime": "2021-08-01T10:17:53Z",
         "state": "LIVE",
         "viewerCount": 1
       },
       "metadata": {
         "streamTitle": "Welcome to my cool stream",
-        "userAvatar": "https://assets.codepen.io/2960061/giraffe.png",
+        "userAvatar": "https://d39ii5l128t5ul.cloudfront.net/assets/animals_rounded/giraffe.png",
         "userName": "Gene Giraffe",
         "userColors": {
           "primary": "#545B60",
@@ -45,14 +45,14 @@
       "stream": {
         "channelArn": "arn:aws:ivs:us-west-2:XXXXXXXXXXXX:channel/XXXXXXXXXXXX",
         "health": "HEALTHY",
-        "playbackUrl": "https://usher.ttvnw.net/api/lvs/hls/lvs.lvs-client-example.c6341be8-a3c7-42bc-b89a-8dabe040eae9.m3u8",
+        "playbackUrl": "https://4c62a87c1810.us-west-2.playback.live-video.net/api/video/v1/us-west-2.049054135175.channel.QidZjoGOhfDp.m3u8",
         "startTime": "2021-08-01T10:17:53Z",
         "state": "LIVE",
         "viewerCount": 1
       },
       "metadata": {
         "streamTitle": "What a hoot!",
-        "userAvatar": "https://assets.codepen.io/2960061/bird2.png",
+        "userAvatar": "https://d39ii5l128t5ul.cloudfront.net/assets/animals_rounded/bird2.png",
         "userName": "Owen Owl",
         "userColors": {
           "primary": "#FFB660",
