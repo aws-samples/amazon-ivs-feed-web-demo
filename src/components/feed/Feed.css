@@ -1,7 +1,7 @@
 .feed {
   display: grid;
   grid-template-columns: 1fr;
-  row-gap: 70px;
+  row-gap: 20rem;
   column-gap: 200px;
   place-items: center;
   width: 100%;
