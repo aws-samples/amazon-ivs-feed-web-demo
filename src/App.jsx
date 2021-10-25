@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Feed from './components/feed';
+import StreamMetadata from './components/feed/stream-metadata';
 import { Description } from './assets/icons';
 
 import './App.css';
@@ -80,19 +81,13 @@ const App = () => {
 	return (
 		<div className="grid">
 			<div className="feed">
-				{/* TODO: Video component goes here (replace below) */}
 				<button className="desc-button" onClick={() => toggleMetadata()}>
 					<Description />
 				</button>
 				{!!streams.length && <Feed streams={[streams[0]]} />}
 			</div>
 			<div ref={metadataRef} className="metadata">
-				{/* TODO: Metadata component goes here (replace below) */}
-				<div className="metadata-content">
-					<p>Metadata</p>
-					<p>Metadata</p>
-					<p>Metadata</p>
-				</div>
+				<StreamMetadata />
 			</div>
 		</div>
 	);
