@@ -29,24 +29,29 @@ const StreamMetadata = (props) => {
   }, [active, startTime]);
 
   return (
-    <div className="stream-meta">
-      <h3 className="stream-meta-title">{title}</h3>
+    // <div className="stream-meta">
+    //   <h3 className="stream-meta-title">{title}</h3>
 
-      <div className="stream-meta-details">
-        <img
-          className="stream-meta-avatar"
-          src={userAvatar}
-          alt={`${userName} avatar`}
-        />
+    //   <div className="stream-meta-details">
+    //     <img
+    //       className="stream-meta-avatar"
+    //       src={userAvatar}
+    //       alt={`${userName} avatar`}
+    //     />
 
-        <div className="stream-meta-text">
-          <p className="stream-meta-username">{userName}</p>
+    //     <div className="stream-meta-text">
+    //       <p className="stream-meta-username">{userName}</p>
 
-          <p className="stream-meta-state">
-            <span>{state}</span> for {timeSince}
-          </p>
-        </div>
-      </div>
+    //       <p className="stream-meta-state">
+    //         <span>{state}</span> for {timeSince}
+    //       </p>
+    //     </div>
+    //   </div>
+    // </div>
+    <div className="metadata-content">
+      <p>Metadata</p>
+      <p>Metadata</p>
+      <p>Metadata</p>
     </div>
   );
 };

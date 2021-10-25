@@ -94,14 +94,14 @@ const StreamPlayer = (props) => {
         />
       </div>
 
-      <StreamMetadata
+      {/* <StreamMetadata
         active={active}
         startTime={startTime}
         state={state}
         title={streamTitle}
         userAvatar={userAvatar}
         userName={userName}
-      />
+      /> */}
     </div>
   );
 };

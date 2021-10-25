@@ -7,8 +7,8 @@
 button {
   background: none;
   border: none;
-  outline: none;
   cursor: pointer;
+  user-select: none;
 }
 
 body {

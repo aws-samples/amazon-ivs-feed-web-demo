@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import StreamPlayer from './stream-player';
 
-import './Feed.css';
-
 const Feed = (props) => {
   const { IVSPlayer } = window;
   const { isPlayerSupported } = IVSPlayer;
@@ -20,9 +18,7 @@ const Feed = (props) => {
     const { ERROR } = IVSPlayer.PlayerEventType;
 
     if (!isPlayerSupported) {
-      console.warn(
-        'The current browser does not support the Amazon IVS player.',
-      );
+      console.warn('The current browser does not support the Amazon IVS player.');
 
       return;
     }
@@ -77,7 +73,7 @@ const Feed = (props) => {
   }
 
   return (
-    <div className="feed">
+    <>
       {streams.map((stream) => (
         <StreamPlayer
           key={stream.id}
@@ -88,7 +84,7 @@ const Feed = (props) => {
           setStream={setStream}
         />
       ))}
-    </div>
+    </>
   );
 };
 
