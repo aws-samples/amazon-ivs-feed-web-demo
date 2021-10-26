@@ -28,6 +28,10 @@ const StreamMetadata = ({ active, startTime, userAvatar, userName, state, stream
     };
   }, [active, startTime]);
 
+  const copyText = (testUrl) => {
+    navigator.clipboard.writeText(testUrl);
+  }
+
   return (
     <div className="metadata-content">
       <div className="stream-meta-details">
@@ -49,7 +53,10 @@ const StreamMetadata = ({ active, startTime, userAvatar, userName, state, stream
 
       <div className="stream-meta-share">
         Share this live stream
-        <div className="stream-meta-sharelink">https://myurl.com/item1 <ReactLogo /></div>
+        <div className="stream-meta-sharelink">
+          https://myurl.com/item1
+          <button onClick={() => copyText("https://myurl.com/item1")}><ReactLogo /></button>
+        </div>
       </div>
     </div>
   );

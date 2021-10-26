@@ -55,6 +55,7 @@ const App = () => {
       const { scrollHeight: contentHeight, style } = metadataRef.current;
       style.transition = transition ? 'height 0.2s ease-out' : '';
 
+
       if (show) {
         // Show metadata
         style.height = isMobileView.current ? `${contentHeight}px` : '100%';
@@ -89,10 +90,11 @@ const App = () => {
         {!!streams.length && <Feed streams={[streams[0]]} />}
       </div>
       {!!streams.length && 
+        //this is just for 1 stream, but loop the streams later and make pages
         <div ref={metadataRef} className="metadata">
           <StreamMetadata
             active={streams[0].stream.active}
-            startTime={streams[0].stream.active}
+            startTime={streams[0].stream.startTime}
             userAvatar={streams[0].metadata.userAvatar}
             userName={streams[0].metadata.userName}
             state={streams[0].stream.state}

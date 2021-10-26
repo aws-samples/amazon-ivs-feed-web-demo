@@ -1,6 +1,5 @@
 .metadata-content {
-  padding-left: 2.4rem;
-  padding-right: 2.4rem;
+  padding:34px 24px;
   display: flex;
   height: 100%;
   flex-direction: column;
@@ -61,6 +60,7 @@
 
 .stream-meta-share {
   color: #eeeeee;
+  font-size: 14px;
 }
 
 .stream-meta-sharelink {
@@ -74,4 +74,8 @@
   padding-left: 16px;
   color: #999999;
   margin-top: 8px;
+}
+
+.stream-meta-sharelink svg {
+  cursor: pointer;
 }

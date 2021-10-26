@@ -23,7 +23,7 @@
 .metadata {
   width: var(--desktop-metadata-width);
   background: #333333;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .desc-button {
