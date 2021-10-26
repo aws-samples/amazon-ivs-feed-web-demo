@@ -19,16 +19,16 @@
   --color-near-white: #eeeeee;
   --color-white: #FFF;
 
-  /* --color-dark-red: #E7040F; */
+  /* --color-dark-red: #E7040F;
   --color-red: #dc3754;
-  /* --color-light-red: #FF725C; */
+  --color-light-red: #FF725C;
 
-  /* --color-orange: #FF6300;
+  --color-orange: #FF6300;
   --color-gold: #FFB700;
   --color-yellow: #FFD700;
-  --color-light-yellow: #FBF1A9; */
+  --color-light-yellow: #FBF1A9;
 
-  /* --color-purple: #5E2CA5;
+  --color-purple: #5E2CA5;
   --color-light-purple: #A463F2;
 
   --color-dark-pink: #D5008F;
@@ -38,13 +38,7 @@
 
   --color-dark-green: #137752;
   --color-green: #0FD70B;
-  --color-light-green: #9EEBCF;
-
-  --color-navy: #001B44;
-  --color-dark-blue: #2026A2;
-  --color-blue: #2B44FF;
-  --color-light-blue: #8BB0FF;
-  --color-lightest-blue: #E0EAFF;
+  --color-light-green: #9EEBCF; */
 }
 
 button {
