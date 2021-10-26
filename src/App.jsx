@@ -79,8 +79,6 @@ const App = () => {
     [metadataVisible]
   );
 
-  console.log("stream", streams);
-
   return (
     <div className="grid">
       <div className="feed">
