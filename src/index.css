@@ -4,13 +4,6 @@
   box-sizing: border-box;
 }
 
-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  user-select: none;
-}
-
 body {
   min-width: 320px;
   background-color: #000;

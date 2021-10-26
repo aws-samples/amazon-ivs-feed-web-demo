@@ -1,15 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+
 import Feed from './components/feed';
 import StreamMetadata from './components/feed/stream-metadata';
-import { Description } from './assets/icons';
+import useStream from './contexts/Stream/useStream';
 
 import './App.css';
 
 const feedJSON = `${process.env.PUBLIC_URL}/feed.json`;
 
 const App = () => {
-  const [streams, setStreams] = useState([]);
-
+  const { setStreams } = useStream();
   const [metadataVisible, setMetadataVisible] = useState(true);
   const isMobileView = useRef(false);
   const metadataRef = useRef();
@@ -28,7 +28,7 @@ const App = () => {
     };
 
     fetchStreams();
-  }, []);
+  }, [setStreams]);
 
   useEffect(() => {
     const handleWindowResize = () => {
@@ -80,12 +80,7 @@ const App = () => {
 
   return (
     <div className="grid">
-      <div className="feed">
-        <button className="desc-button" onClick={() => toggleMetadata()}>
-          <Description />
-        </button>
-        {!!streams.length && <Feed streams={[streams[0]]} />}
-      </div>
+      <Feed toggleMetadata={toggleMetadata} />
       <div ref={metadataRef} className="metadata">
         <StreamMetadata />
       </div>

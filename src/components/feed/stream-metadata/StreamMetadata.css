@@ -1,5 +1,8 @@
 .metadata-content {
   padding: 2rem 1.5rem;
+  color: white;
+  text-align: center;
+  font-size: 20px;
 }
 
 .stream-meta {

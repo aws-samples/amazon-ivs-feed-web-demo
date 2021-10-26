@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Heart from './Heart';
 
 import { getRandomColor } from '../utils';
-import { Favorite } from '../../../assets/icons';
+import Button from '../../common/Button';
 import './Like.css';
 
 const Like = (props) => {
@@ -30,10 +30,7 @@ const Like = (props) => {
 
   return (
     <div className="like-wrapper">
-      <button className="like-button" onClick={animateLike}>
-        <Favorite />
-      </button>
-
+      <Button onClick={animateLike}>Favorite</Button>
       {hearts.map(({ id, color }) => (
         <Heart key={id} color={color} removeHeart={removeHeart} />
       ))}
