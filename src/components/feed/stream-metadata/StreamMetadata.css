@@ -1,21 +1,15 @@
 .metadata-content {
-  padding: 2rem 1.5rem;
-}
-
-.stream-meta {
-  padding: 20px 10px;
+  padding-left: 2.4rem;
+  padding-right: 2.4rem;
   display: flex;
+  height: 100%;
   flex-direction: column;
-}
-
-.stream-meta-title {
-  margin-bottom: 10px;
-  font-size: 16px;
-  color: #fff;
+  justify-content: center;
 }
 
 .stream-meta-details {
   display: flex;
+  margin-bottom: 24px;
 }
 
 .stream-meta-avatar {
@@ -34,15 +28,15 @@
   color: #fff;
 }
 
-.stream-meta-state {
-  position: relative;
-  padding-left: 16px;
-  color: #b2b2b2;
+.stream-meta-username {
+  font-size: 15px;
 }
 
-.stream-meta-state span {
-  color: #fff;
-  font-weight: 700;
+.stream-meta-state {
+  font-size: 13px;
+  position: relative;
+  padding-left: 16px;
+  color: #999999;
 }
 
 .stream-meta-state::before {
@@ -54,4 +48,30 @@
   width: 10px;
   border-radius: 50%;
   background-color: #dc3754;
+}
+
+.stream-meta-title {
+  margin-bottom: 10px;
+  font-size: 17px;
+  color: #fff;
+  border-bottom: 1px solid #5c5c5c;
+  padding-bottom: 24px;
+  margin-bottom: 24px;
+}
+
+.stream-meta-share {
+  color: #eeeeee;
+}
+
+.stream-meta-sharelink {
+  height: 44px;
+  background: #222222;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 16px;
+  padding-left: 16px;
+  color: #999999;
+  margin-top: 8px;
 }

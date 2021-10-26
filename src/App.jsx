@@ -78,6 +78,8 @@ const App = () => {
     [metadataVisible]
   );
 
+  console.log("stream", streams);
+
   return (
     <div className="grid">
       <div className="feed">
@@ -86,9 +88,18 @@ const App = () => {
         </button>
         {!!streams.length && <Feed streams={[streams[0]]} />}
       </div>
-      <div ref={metadataRef} className="metadata">
-        <StreamMetadata />
-      </div>
+      {!!streams.length && 
+        <div ref={metadataRef} className="metadata">
+          <StreamMetadata
+            active={streams[0].stream.active}
+            startTime={streams[0].stream.active}
+            userAvatar={streams[0].metadata.userAvatar}
+            userName={streams[0].metadata.userName}
+            state={streams[0].stream.state}
+            streamTitle={streams[0].metadata.streamTitle}
+          />
+        </div>
+      }
     </div>
   );
 };

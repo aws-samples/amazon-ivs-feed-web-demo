@@ -40,7 +40,7 @@
   top: 0;
 }
 
-@media (max-width: 839px) and (orientation: portrait) {
+@media (max-width: 839px) {
   .grid {
     flex-direction: column;
   }
@@ -60,15 +60,8 @@
   }
 }
 
-@media (max-width: 839px) and (orientation: landscape) {
+/* @media (max-width: 839px) and (orientation: landscape) {
   .metadata {
     display: none;
   }
-}
-
-/* TODO: remove when implementing video and metadata components */
-.metadata p {
-  font-size: 24px;
-  text-align: center;
-  color: white;
-}
+} */
