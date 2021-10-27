@@ -1,20 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { Check } from '../../../assets/icons';
 import './Snackbar.css';
 
-const Snackbar = ({ text }) => {
+const Snackbar = ({ text, showSnackbar }) => {
   return (
     ReactDOM.createPortal(
       <div
         // ref={tooltipRef}
         id="portal"
-        className="snackbar"
-        style={{
-          position: "absolute",
-          top: 40,
-          left: 30,
-        }}
+        className={`snackbar${showSnackbar ? " visible" : ""}`}
       >
+        <Check />
         {text}
       </div>,
       document.body

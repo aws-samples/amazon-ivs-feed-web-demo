@@ -3,6 +3,7 @@ import { getTimeSince } from '../utils';
 import { ReactComponent as ReactLogo } from "../../../assets/icons/copy.svg";
 
 import useStream from '../../../contexts/Stream/useStream';
+import Snackbar from '../snackbar/Snackbar';
 
 import './StreamMetadata.css';
 
@@ -13,6 +14,7 @@ const StreamMetadata = () => {
   const { userAvatar, userName, streamTitle } = activeStream.metadata;
   const [timeSince, setTimeSince] = useState(getTimeSince(startTime));
   const intervalId = useRef(null);
+  const [showSnackbar, setSnackbar] = useState(false);
 
   useEffect(() => {
     const pauseCounter = () => {
@@ -23,7 +25,7 @@ const StreamMetadata = () => {
     const startCounter = () => {
       intervalId.current = setInterval(() => {
         setTimeSince(() => getTimeSince(startTime));
-      }, 1000);
+      }, 2000);
     };
 
     active ? startCounter() : pauseCounter();
@@ -35,6 +37,10 @@ const StreamMetadata = () => {
 
   const copyText = (testUrl) => {
     navigator.clipboard.writeText(testUrl);
+    setSnackbar(true);
+    setTimeout(() => {
+      setSnackbar(false);
+    }, 1000);
   }
 
   
@@ -62,9 +68,12 @@ const StreamMetadata = () => {
         Share this live stream
         <div className="stream-meta-sharelink">
           https://myurl.com/item1
-          <button onClick={() => copyText("https://myurl.com/item1")}><ReactLogo /></button>
+          <button onClick={() => copyText("https://myurl.com/item1")}>
+            <ReactLogo />
+          </button>
         </div>
       </div>
+      <Snackbar showSnackbar={showSnackbar} text="Copied!" />
     </div>
   );
 };

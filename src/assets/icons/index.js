@@ -5,3 +5,4 @@ export { ReactComponent as Description } from './description.svg';
 export { ReactComponent as ChevronUp } from './chevron-up.svg';
 export { ReactComponent as ChevronDown } from './chevron-down.svg';
 export { ReactComponent as Play } from './play.svg';
+export { ReactComponent as Check } from './check.svg';
