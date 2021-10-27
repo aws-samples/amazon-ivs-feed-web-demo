@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import Placeholder from './Placeholder';
+import Spinner from './Spinner';
 import Button from '../common/Button';
 import Like from './Like';
+import { Play } from '../../assets/icons';
 import useStream from '../../contexts/Stream/useStream';
 
 import './Feed.css';
@@ -16,6 +17,7 @@ const Feed = ({ toggleMetadata }) => {
   const [paused, setPaused] = useState(false);
 
   const videoRef = useRef();
+  const blurRef = useRef();
   const player = useRef(null);
 
   useEffect(() => {
@@ -34,13 +36,26 @@ const Feed = ({ toggleMetadata }) => {
 
   useEffect(() => {
     if (isPlayerSupported) {
-      const { ENDED, PLAYING, READY } = PlayerState;
+      const { ENDED, PLAYING, READY, BUFFERING } = PlayerState;
       const { ERROR } = PlayerEventType;
 
       const onStateChange = () => {
         const newState = player.current.getState();
         console.log(`Player State - ${newState}`);
         setLoading(newState !== PLAYING);
+        setPaused(player.current.isPaused());
+      };
+
+      const renderBlur = () => {
+        const draw = () => {
+          if (player.current && !player.current.isPaused()) {
+            const canvas = blurRef.current;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+            requestAnimationFrame(draw);
+          }
+        };
+        requestAnimationFrame(draw);
       };
 
       const onError = (err) => {
@@ -52,18 +67,31 @@ const Feed = ({ toggleMetadata }) => {
       player.current.attachHTMLVideoElement(videoRef.current);
 
       player.current.addEventListener(READY, onStateChange);
+      player.current.addEventListener(BUFFERING, onStateChange);
       player.current.addEventListener(PLAYING, onStateChange);
+      player.current.addEventListener(PLAYING, renderBlur);
       player.current.addEventListener(ENDED, onStateChange);
       player.current.addEventListener(ERROR, onError);
 
       return () => {
         player.current?.removeEventListener(READY, onStateChange);
+        player.current?.removeEventListener(BUFFERING, onStateChange);
         player.current?.removeEventListener(PLAYING, onStateChange);
+        player.current?.removeEventListener(PLAYING, renderBlur);
         player.current?.removeEventListener(ENDED, onStateChange);
         player.current?.removeEventListener(ERROR, onError);
       };
     }
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.keyCode === 38) prevStream(); // keyCode 38 : 'ArrowUp'
+      if (e.keyCode === 40) nextStream(); // keyCode 38 : 'ArrowDown'
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  });
 
   const toggleMute = () => {
     const muteNext = !player.current.isMuted();
@@ -93,23 +121,23 @@ const Feed = ({ toggleMetadata }) => {
         <Button onClick={toggleMute}>{muted ? 'VolumeOff' : 'VolumeUp'}</Button>
 
         <hr className="divider" />
-        <Button onClick={nextStream}>ChevronUp</Button>
-        <Button onClick={prevStream}>ChevronDown</Button>
+        <Button onClick={prevStream}>ChevronUp</Button>
+        <Button onClick={nextStream}>ChevronDown</Button>
 
-        <span className="description-toggle">
+        <span className="metadata-toggle">
           <hr className="divider" />
           <Button onClick={() => toggleMetadata()}>Description</Button>
         </span>
       </div>
 
       <div className="player-video">
-        <video ref={videoRef} onClick={togglePlayPause} playsInline muted />
-        <Placeholder loading={loading} />
-        {paused && (
-          <div onClick={togglePlayPause} className="paused-player">
-            <Button onClick={togglePlayPause}>Play</Button>
-          </div>
-        )}
+        <video ref={videoRef} playsInline muted />
+        <canvas ref={blurRef} />
+        <Spinner loading={loading} />
+
+        <button className="btn-pause" onClick={togglePlayPause} tabIndex={1}>
+          {paused && <Play />}
+        </button>
       </div>
     </div>
   );

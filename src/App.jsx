@@ -40,7 +40,7 @@ const App = () => {
       if (window.innerWidth >= 840 && isMobileView.current) {
         // Switch to desktop view
         isMobileView.current = false;
-        toggleMetadata(true);
+        toggleMetadata(true, false);
       }
     };
 
