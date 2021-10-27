@@ -37,7 +37,7 @@ canvas {
 
 @media (max-width: 839px) {
   .feed {
-    min-height: var(--mobile-feed-min-height);
+    min-height: var(--height-min-mobile-feed);
   }
 
   .metadata-toggle {

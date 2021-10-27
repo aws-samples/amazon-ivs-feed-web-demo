@@ -102,11 +102,10 @@ const Feed = ({ toggleMetadata }) => {
   const togglePlayPause = () => {
     if (player.current.isPaused()) {
       player.current.play();
-      setPaused(false);
     } else {
       player.current.pause();
-      setPaused(true);
     }
+    setPaused(player.current.isPaused());
   };
 
   if (!isPlayerSupported) {
