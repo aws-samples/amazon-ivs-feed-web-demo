@@ -2,10 +2,15 @@ import React, { useEffect, useState, useRef } from 'react';
 import { getTimeSince } from '../utils';
 import { ReactComponent as ReactLogo } from "../../../assets/icons/copy.svg";
 
+import useStream from '../../../contexts/Stream/useStream';
+
 import './StreamMetadata.css';
 
-const StreamMetadata = ({ active, startTime, userAvatar, userName, state, streamTitle }) => { 
+const StreamMetadata = () => { 
+  const { activeStream } = useStream();
 
+  const { active, startTime, state } = activeStream.stream;
+  const { userAvatar, userName, streamTitle } = activeStream.metadata;
   const [timeSince, setTimeSince] = useState(getTimeSince(startTime));
   const intervalId = useRef(null);
 
@@ -31,6 +36,8 @@ const StreamMetadata = ({ active, startTime, userAvatar, userName, state, stream
   const copyText = (testUrl) => {
     navigator.clipboard.writeText(testUrl);
   }
+
+  
 
   return (
     <div className="metadata-content">
