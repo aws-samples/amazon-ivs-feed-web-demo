@@ -42,9 +42,7 @@ const StreamMetadata = () => {
       setSnackbar(false);
     }, 1000);
   }
-
   
-
   return (
     <div className="metadata-content">
       <div className="stream-meta-details">
