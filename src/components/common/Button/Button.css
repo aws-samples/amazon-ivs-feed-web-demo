@@ -1,0 +1,22 @@
+.button {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: var(--color-btn);
+  border: none;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (hover: hover) {
+  .button:hover {
+    background: var(--color-btn-hovered);
+  }
+}
+
+.button:active {
+  background: var(--color-btn-active);
+}

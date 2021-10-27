@@ -1,5 +1,14 @@
 .metadata-content {
   padding:34px 24px;
+  /* padding: 2rem 1.5rem;
+  color: white;
+  text-align: center;
+  font-size: 20px; */
+  width: 100%;
+}
+
+.stream-meta {
+  /* padding: 20px 10px; */
   display: flex;
   height: 100%;
   flex-direction: column;

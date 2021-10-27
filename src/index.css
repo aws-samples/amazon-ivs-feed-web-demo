@@ -1,16 +1,13 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 :root {
+  --height-min-mobile-feed: 300px;
+  --width-desktop-metadata: 420px;
+
   /* Palette colors - Based on Tachyons.css */
   --color-black: #000;
   /* --color-near-black: #0F1112; */
 
   --color-dark-gray: #222222;
-  /* --color-mid-gray: #4B5358; */
+  --color-mid-gray: #333333;
   --color-gray: #8D9CA7;
 
   --color-silver: #999999;
@@ -39,6 +36,12 @@
   --color-dark-green: #137752;
   --color-green: #0FD70B;
   --color-light-green: #9EEBCF; */
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 button {

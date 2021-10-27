@@ -1,15 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+
 import Feed from './components/feed';
 import StreamMetadata from './components/feed/stream-metadata';
-import { Description } from './assets/icons';
+import useStream from './contexts/Stream/useStream';
 
 import './App.css';
 
 const feedJSON = `${process.env.PUBLIC_URL}/feed.json`;
 
 const App = () => {
-  const [streams, setStreams] = useState([]);
-
+  const { setStreams, activeStream } = useStream();
   const [metadataVisible, setMetadataVisible] = useState(true);
   const isMobileView = useRef(false);
   const metadataRef = useRef();
@@ -28,7 +28,7 @@ const App = () => {
     };
 
     fetchStreams();
-  }, []);
+  }, [setStreams]);
 
   useEffect(() => {
     const handleWindowResize = () => {
@@ -40,7 +40,7 @@ const App = () => {
       if (window.innerWidth >= 840 && isMobileView.current) {
         // Switch to desktop view
         isMobileView.current = false;
-        toggleMetadata(true);
+        toggleMetadata(true, false);
       }
     };
 
@@ -81,27 +81,14 @@ const App = () => {
 
   return (
     <div className="grid">
-      <div className="feed">
-        <button className="desc-button" onClick={() => toggleMetadata()}>
-          <Description />
-        </button>
-        {!!streams.length && <Feed streams={[streams[0]]} />}
-      </div>
-      {!!streams.length && 
-        //this is just for 1 stream, but loop the streams later and make pages
+      <Feed toggleMetadata={toggleMetadata} />
+      {!!activeStream && 
         <div ref={metadataRef} className="metadata">
-          <StreamMetadata
-            active={streams[0].stream.active}
-            startTime={streams[0].stream.startTime}
-            userAvatar={streams[0].metadata.userAvatar}
-            userName={streams[0].metadata.userName}
-            state={streams[0].stream.state}
-            streamTitle={streams[0].metadata.streamTitle}
-          />
+          <StreamMetadata />
         </div>
       }
     </div>
   );
-};
+}
 
 export default App;
