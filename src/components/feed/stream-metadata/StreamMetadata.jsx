@@ -1,11 +1,16 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { getTimeSince } from '../utils';
+import { ReactComponent as ReactLogo } from "../../../assets/icons/copy.svg";
+
+import useStream from '../../../contexts/Stream/useStream';
 
 import './StreamMetadata.css';
 
-const StreamMetadata = (props) => {
-  const { active, startTime, state, title, userAvatar, userName } = props;
+const StreamMetadata = () => { 
+  const { activeStream } = useStream();
 
+  const { active, startTime, state } = activeStream.stream;
+  const { userAvatar, userName, streamTitle } = activeStream.metadata;
   const [timeSince, setTimeSince] = useState(getTimeSince(startTime));
   const intervalId = useRef(null);
 
@@ -28,30 +33,38 @@ const StreamMetadata = (props) => {
     };
   }, [active, startTime]);
 
+  const copyText = (testUrl) => {
+    navigator.clipboard.writeText(testUrl);
+  }
+
+  
+
   return (
-    // <div className="stream-meta">
-    //   <h3 className="stream-meta-title">{title}</h3>
-
-    //   <div className="stream-meta-details">
-    //     <img
-    //       className="stream-meta-avatar"
-    //       src={userAvatar}
-    //       alt={`${userName} avatar`}
-    //     />
-
-    //     <div className="stream-meta-text">
-    //       <p className="stream-meta-username">{userName}</p>
-
-    //       <p className="stream-meta-state">
-    //         <span>{state}</span> for {timeSince}
-    //       </p>
-    //     </div>
-    //   </div>
-    // </div>
     <div className="metadata-content">
-      <p>Metadata</p>
-      <p>Metadata</p>
-      <p>Metadata</p>
+      <div className="stream-meta-details">
+        <img
+          className="stream-meta-avatar"
+          src={userAvatar}
+          alt={`${userName} avatar`}
+        />
+
+        <div className="stream-meta-text">
+          <p className="stream-meta-username">{userName}</p>
+
+          <p className="stream-meta-state">
+            <span>{state}</span> for {timeSince}
+          </p>
+        </div>
+      </div>
+      <div className="stream-meta-title">{streamTitle}</div>
+
+      <div className="stream-meta-share">
+        Share this live stream
+        <div className="stream-meta-sharelink">
+          https://myurl.com/item1
+          <button onClick={() => copyText("https://myurl.com/item1")}><ReactLogo /></button>
+        </div>
+      </div>
     </div>
   );
 };

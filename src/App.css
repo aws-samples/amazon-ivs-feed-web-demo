@@ -6,8 +6,24 @@
 
 .metadata {
   width: var(--width-desktop-metadata);
-  background: var(--color-bg-metadata);
+  background: var(--color-mid-gray);
   overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.desc-button {
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: 1rem;
+  border-radius: 50%;
+  background: rgba(51, 51, 51, 0.7);
+  display: none;
+  z-index: 10;
+
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
 @media (max-width: 839px) {

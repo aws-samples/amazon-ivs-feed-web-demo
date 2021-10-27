@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import Spinner from './Spinner';
 import Button from '../common/Button';
-import Like from './Like';
+import Like from './like';
 import { Play } from '../../assets/icons';
 import useStream from '../../contexts/Stream/useStream';
 

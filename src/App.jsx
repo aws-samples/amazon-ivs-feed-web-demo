@@ -9,7 +9,7 @@ import './App.css';
 const feedJSON = `${process.env.PUBLIC_URL}/feed.json`;
 
 const App = () => {
-  const { setStreams } = useStream();
+  const { setStreams, activeStream } = useStream();
   const [metadataVisible, setMetadataVisible] = useState(true);
   const isMobileView = useRef(false);
   const metadataRef = useRef();
@@ -55,6 +55,7 @@ const App = () => {
       const { scrollHeight: contentHeight, style } = metadataRef.current;
       style.transition = transition ? 'height 0.2s ease-out' : '';
 
+
       if (show) {
         // Show metadata
         style.height = isMobileView.current ? `${contentHeight}px` : '100%';
@@ -81,11 +82,13 @@ const App = () => {
   return (
     <div className="grid">
       <Feed toggleMetadata={toggleMetadata} />
-      <div ref={metadataRef} className="metadata">
-        <StreamMetadata />
-      </div>
+      {!!activeStream && 
+        <div ref={metadataRef} className="metadata">
+          <StreamMetadata />
+        </div>
+      }
     </div>
   );
-};
+}
 
 export default App;
