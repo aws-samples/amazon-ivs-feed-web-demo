@@ -1,74 +1,23 @@
-:root {
-  --mobile-feed-min-height: 300px;
-  --desktop-metadata-width: 420px;
-}
-
 .grid {
   display: flex;
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-
-.feed {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  height: 100vh;
   overflow: hidden;
 }
 
 .metadata {
-  width: var(--desktop-metadata-width);
-  background: #333333;
+  width: var(--width-desktop-metadata);
+  background: var(--color-bg-metadata);
   overflow: hidden;
 }
 
-.desc-button {
-  width: 2.75rem;
-  height: 2.75rem;
-  margin: 1rem;
-  border-radius: 50%;
-  background: rgba(51, 51, 51, 0.7);
-  display: none;
-  z-index: 10;
-
-  position: absolute;
-  right: 0;
-  top: 0;
-}
-
-@media (max-width: 839px) and (orientation: portrait) {
+@media (max-width: 839px) {
   .grid {
     flex-direction: column;
-  }
-
-  .feed {
-    min-height: var(--mobile-feed-min-height);
   }
 
   .metadata {
     width: 100%;
     height: auto;
-    max-height: calc(100vh - var(--mobile-feed-min-height));
+    max-height: calc(100vh - var(--height-min-mobile-feed));
   }
-
-  .desc-button {
-    display: block;
-  }
-}
-
-@media (max-width: 839px) and (orientation: landscape) {
-  .metadata {
-    display: none;
-  }
-}
-
-/* TODO: remove when implementing video and metadata components */
-.metadata p {
-  font-size: 24px;
-  text-align: center;
-  color: white;
 }

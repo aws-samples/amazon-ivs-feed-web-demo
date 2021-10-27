@@ -1,14 +1,16 @@
+:root {
+  --height-min-mobile-feed: 300px;
+  --width-desktop-metadata: 420px;
+  --color-bg-metadata: #333333;
+  --color-btn: rgba(51, 51, 51, 0.7);
+  --color-btn-hovered: rgba(51, 51, 51, 0.9);
+  --color-btn-active: rgba(51, 51, 51, 0.9);
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
-
-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  user-select: none;
 }
 
 body {

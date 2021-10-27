@@ -1,90 +1,144 @@
 import React, { useEffect, useRef, useState } from 'react';
-import StreamPlayer from './stream-player';
 
-const Feed = (props) => {
-  const { IVSPlayer } = window;
-  const { isPlayerSupported } = IVSPlayer;
+import Spinner from './Spinner';
+import Button from '../common/Button';
+import Like from './Like';
+import { Play } from '../../assets/icons';
+import useStream from '../../contexts/Stream/useStream';
 
-  const { streams } = props;
+import './Feed.css';
 
-  const [activeStreamId, setActiveStreamId] = useState();
+const { isPlayerSupported, create, PlayerState, PlayerEventType } = window.IVSPlayer;
+
+const Feed = ({ toggleMetadata }) => {
+  const { activeStream, nextStream, prevStream } = useStream();
   const [loading, setLoading] = useState(false);
-  const [visibleVideos, setVisibleVideos] = useState([]);
+  const [muted, setMuted] = useState(false);
+  const [paused, setPaused] = useState(false);
 
+  const videoRef = useRef();
+  const blurRef = useRef();
   const player = useRef(null);
 
   useEffect(() => {
-    const { ENDED, PLAYING, READY } = IVSPlayer.PlayerState;
-    const { ERROR } = IVSPlayer.PlayerEventType;
-
-    if (!isPlayerSupported) {
-      console.warn('The current browser does not support the Amazon IVS player.');
-
-      return;
+    if (player.current) {
+      player.current.pause();
+      player.current.load(activeStream.stream.playbackUrl);
+      player.current.play();
     }
+  }, [activeStream]);
 
-    const onStateChange = () => {
-      const newState = player.current.getState();
+  // handle case when autoplay with sound is blocked by browser
+  useEffect(() => {
+    if (loading) return;
+    setMuted(player.current?.isMuted());
+  }, [loading]);
 
-      console.log(`Player State - ${newState}`);
+  useEffect(() => {
+    if (isPlayerSupported) {
+      const { ENDED, PLAYING, READY, BUFFERING } = PlayerState;
+      const { ERROR } = PlayerEventType;
 
-      setLoading(newState !== PLAYING);
+      const onStateChange = () => {
+        const newState = player.current.getState();
+        console.log(`Player State - ${newState}`);
+        setLoading(newState !== PLAYING);
+        setPaused(player.current.isPaused());
+      };
+
+      const renderBlur = () => {
+        const draw = () => {
+          if (player.current && !player.current.isPaused()) {
+            const canvas = blurRef.current;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+            requestAnimationFrame(draw);
+          }
+        };
+        requestAnimationFrame(draw);
+      };
+
+      const onError = (err) => {
+        console.warn('Player Event - ERROR:', err);
+      };
+
+      player.current = create();
+      player.current.setAutoplay(true);
+      player.current.attachHTMLVideoElement(videoRef.current);
+
+      player.current.addEventListener(READY, onStateChange);
+      player.current.addEventListener(BUFFERING, onStateChange);
+      player.current.addEventListener(PLAYING, onStateChange);
+      player.current.addEventListener(PLAYING, renderBlur);
+      player.current.addEventListener(ENDED, onStateChange);
+      player.current.addEventListener(ERROR, onError);
+
+      return () => {
+        player.current?.removeEventListener(READY, onStateChange);
+        player.current?.removeEventListener(BUFFERING, onStateChange);
+        player.current?.removeEventListener(PLAYING, onStateChange);
+        player.current?.removeEventListener(PLAYING, renderBlur);
+        player.current?.removeEventListener(ENDED, onStateChange);
+        player.current?.removeEventListener(ERROR, onError);
+      };
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.keyCode === 38) prevStream(); // keyCode 38 : 'ArrowUp'
+      if (e.keyCode === 40) nextStream(); // keyCode 38 : 'ArrowDown'
     };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  });
 
-    const onError = (err) => {
-      console.warn('Player Event - ERROR:', err);
-    };
+  const toggleMute = () => {
+    const muteNext = !player.current.isMuted();
+    player.current.setMuted(muteNext);
+    setMuted(muteNext);
+  };
 
-    player.current = IVSPlayer.create();
-
-    player.current.addEventListener(READY, onStateChange);
-    player.current.addEventListener(PLAYING, onStateChange);
-    player.current.addEventListener(ENDED, onStateChange);
-    player.current.addEventListener(ERROR, onError);
-
-    return () => {
-      player.current.removeEventListener(READY, onStateChange);
-      player.current.removeEventListener(PLAYING, onStateChange);
-      player.current.removeEventListener(ENDED, onStateChange);
-      player.current.removeEventListener(ERROR, onError);
-    };
-  }, [IVSPlayer, isPlayerSupported]);
-
-  const setStream = (id, visible) => {
-    const index = visibleVideos.indexOf(id);
-
-    if (index > -1 && visible) return;
-
-    let videos = [...visibleVideos];
-
-    if (visible) {
-      videos.push(id);
+  const togglePlayPause = () => {
+    if (player.current.isPaused()) {
+      player.current.play();
     } else {
-      videos.splice(index, 1);
+      player.current.pause();
     }
-
-    setLoading(true);
-    setVisibleVideos(videos);
-    setActiveStreamId(videos[videos.length - 1]);
+    setPaused(player.current.isPaused());
   };
 
   if (!isPlayerSupported) {
+    console.warn('The current browser does not support the Amazon IVS player.');
     return null;
   }
 
   return (
-    <>
-      {streams.map((stream) => (
-        <StreamPlayer
-          key={stream.id}
-          active={stream.id === activeStreamId}
-          loading={stream.id === activeStreamId && loading}
-          player={player.current}
-          streamData={stream}
-          setStream={setStream}
-        />
-      ))}
-    </>
+    <div className="feed">
+      <div className="player-buttons">
+        <Like />
+        <Button onClick={toggleMute}>{muted ? 'VolumeOff' : 'VolumeUp'}</Button>
+
+        <hr className="divider" />
+        <Button onClick={prevStream}>ChevronUp</Button>
+        <Button onClick={nextStream}>ChevronDown</Button>
+
+        <span className="metadata-toggle">
+          <hr className="divider" />
+          <Button onClick={() => toggleMetadata()}>Description</Button>
+        </span>
+      </div>
+
+      <div className="player-video">
+        <video ref={videoRef} playsInline muted />
+        <canvas ref={blurRef} />
+        <Spinner loading={loading} />
+
+        <button className="btn-pause" onClick={togglePlayPause} tabIndex={1}>
+          {paused && <Play />}
+        </button>
+      </div>
+    </div>
   );
 };
 
