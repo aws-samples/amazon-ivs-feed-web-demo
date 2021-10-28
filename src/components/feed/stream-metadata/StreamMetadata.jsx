@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { getTimeSince } from '../utils';
-import { Cross, Copy } from '../../../assets/icons';
+import { Copy } from '../../../assets/icons';
 
 import useStream from '../../../contexts/Stream/useStream';
 import Snackbar from '../snackbar/Snackbar';
@@ -16,6 +16,10 @@ const StreamMetadata = ({ toggleMetadata }) => {
   const [timeSince, setTimeSince] = useState(getTimeSince(startTime));
   const intervalId = useRef(null);
   const [showSnackbar, setSnackbar] = useState(false);
+
+  const isOS = () => {
+    return navigator.userAgent.match(/ipad|iphone/i);
+  }
 
   useEffect(() => {
     const pauseCounter = () => {
