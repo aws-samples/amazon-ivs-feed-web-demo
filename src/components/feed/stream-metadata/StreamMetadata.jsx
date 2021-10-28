@@ -25,7 +25,7 @@ const StreamMetadata = () => {
     const startCounter = () => {
       intervalId.current = setInterval(() => {
         setTimeSince(() => getTimeSince(startTime));
-      }, 2000);
+      }, 1000);
     };
 
     active ? startCounter() : pauseCounter();
@@ -40,7 +40,7 @@ const StreamMetadata = () => {
     setSnackbar(true);
     setTimeout(() => {
       setSnackbar(false);
-    }, 1000);
+    }, 2000);
   }
   
   return (
