@@ -34,14 +34,12 @@
   .metadata {
     width: 100%;
     height: auto;
+    flex-direction: column;
     max-height: calc(100vh - var(--height-min-mobile-feed));
   }
 }
 
 @media (max-width: 839px) and (orientation: landscape) {
-  .feed {
-
-  }
   .metadata {
     position: absolute;
     bottom: 0;
