@@ -41,7 +41,25 @@ const StreamMetadata = ({ toggleMetadata }) => {
   }, [active, startTime]);
 
   const copyText = (testUrl) => {
-    navigator.clipboard.writeText(testUrl);
+    
+    if(isOS()) {
+      //copy to clipboard for iOS safari
+      let textArea = document.createElement('textArea');
+      textArea.value = testUrl;
+      document.body.appendChild(textArea);
+
+      let range = document.createRange();
+      range.selectNodeContents(textArea);
+      let selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      textArea.setSelectionRange(0, 999999);
+
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+    } else {
+      navigator.clipboard.writeText(testUrl);
+    }
     setSnackbar(true);
     setTimeout(() => {
       setSnackbar(false);
