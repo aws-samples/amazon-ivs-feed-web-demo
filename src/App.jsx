@@ -1,6 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-
 import Feed from './components/feed';
 import StreamMetadata from './components/feed/stream-metadata';
 import useStream from './contexts/Stream/useStream';
@@ -14,43 +12,6 @@ const App = () => {
   const [metadataVisible, setMetadataVisible] = useState(true);
   const isMobileView = useRef(false);
   const metadataRef = useRef();
-  const location = useLocation();
-
-  // function hideAddressBar(bPad) {
-  //   // Big screen. Fixed chrome likely.
-  //   if(screen.width > 980 || screen.height > 980) return;
-  
-  //   // Standalone (full screen webapp) mode
-  //   if(window.navigator.standalone === true) return;
-  
-  //   // Page zoom or vertical scrollbars
-  //   if(window.innerWidth !== document.documentElement.clientWidth) {
-  //     // Sometimes one pixel too much. Compensate.
-  //     if((window.innerWidth - 1) !== document.documentElement.clientWidth) return;
-  
-  //   }
-  
-  //   setTimeout(function() {
-  //     // Already scrolled?
-  //     if(window.pageYOffset !== 0) return;
-  
-  //     // Perform autoscroll
-  //     window.scrollTo(0, 1);
-  
-  //     // Reset body height and scroll
-  //     if(bodyTag !== undefined) bodyTag.style.height = window.innerHeight + 'px';
-  //     window.scrollTo(0, 0);
-  
-  //   }, 1000);
-  
-  // }
-
-  useEffect(() => {
-    // quickHideAddressBar();
-    // /mobile/i.test(navigator.userAgent) && !location.hash && setTimeout(function() {
-      window.scrollTo(0, 1);
-    // }, 1000);
-  }, [])
 
   useEffect(() => {
     const fetchStreams = async () => {
