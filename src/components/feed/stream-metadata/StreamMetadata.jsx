@@ -1,13 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { getTimeSince } from '../utils';
-import { ReactComponent as ReactLogo } from "../../../assets/icons/copy.svg";
+import { Cross, Copy } from '../../../assets/icons';
 
 import useStream from '../../../contexts/Stream/useStream';
 import Snackbar from '../snackbar/Snackbar';
 
 import './StreamMetadata.css';
+import Button from '../../common/Button';
 
-const StreamMetadata = () => { 
+const StreamMetadata = ({ toggleMetadata }) => { 
   const { activeStream } = useStream();
 
   const { active, startTime, state } = activeStream.stream;
@@ -45,6 +46,9 @@ const StreamMetadata = () => {
   
   return (
     <div className="metadata-content">
+      <div className="stream-meta-close">
+        <Button onClick={() => toggleMetadata()}>Cross</Button>
+      </div>
       <div className="stream-meta-details">
         <img
           className="stream-meta-avatar"
@@ -67,7 +71,7 @@ const StreamMetadata = () => {
         <div className="stream-meta-sharelink">
           https://myurl.com/item1
           <button onClick={() => copyText("https://myurl.com/item1")}>
-            <ReactLogo />
+            <Copy />
           </button>
         </div>
       </div>

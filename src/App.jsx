@@ -88,7 +88,7 @@ const App = () => {
       <Feed toggleMetadata={toggleMetadata} />
       {!!activeStream && 
         <div ref={metadataRef} className="metadata">
-          <StreamMetadata />
+          <StreamMetadata toggleMetadata={toggleMetadata} />
         </div>
       }
     </div>

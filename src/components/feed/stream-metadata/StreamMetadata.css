@@ -1,13 +1,24 @@
 .metadata-content {
   padding:34px 24px;
   width: 100%;
+  position: relative;
 }
 
-.stream-meta {
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-  justify-content: center;
+.stream-meta-close {
+  display: none;
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+.stream-meta-close .button {
+  background: var(--color-black);
+}
+
+@media (max-width: 839px) {
+  .stream-meta-close {
+    display: block;
+  }
 }
 
 .stream-meta-details {
