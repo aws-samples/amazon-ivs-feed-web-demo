@@ -34,6 +34,22 @@
   .metadata {
     width: 100%;
     height: auto;
+    flex-direction: column;
     max-height: calc(100vh - var(--height-min-mobile-feed));
+  }
+}
+
+@media (max-width: 839px) and (orientation: landscape) {
+  .metadata {
+    position: absolute;
+    bottom: 0;
+    z-index: 100;
+    max-height: unset;
+  }
+}
+
+@media (orientation: portrait) {
+  .metadata {
+    position: relative;
   }
 }

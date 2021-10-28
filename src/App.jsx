@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-
 import Feed from './components/feed';
 import StreamMetadata from './components/feed/stream-metadata';
 import useStream from './contexts/Stream/useStream';
@@ -50,8 +49,12 @@ const App = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+
+
   const toggleMetadata = useCallback(
     (show = !metadataVisible, transition = true) => {
+      if (metadataRef.current) {
+
       const { scrollHeight: contentHeight, style } = metadataRef.current;
       style.transition = transition ? 'height 0.2s ease-out' : '';
 
@@ -75,6 +78,7 @@ const App = () => {
       }
 
       setMetadataVisible(show);
+      }
     },
     [metadataVisible]
   );
@@ -84,7 +88,7 @@ const App = () => {
       <Feed toggleMetadata={toggleMetadata} />
       {!!activeStream && 
         <div ref={metadataRef} className="metadata">
-          <StreamMetadata />
+          <StreamMetadata toggleMetadata={toggleMetadata} />
         </div>
       }
     </div>

@@ -1,18 +1,25 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { getTimeSince } from '../utils';
-import { ReactComponent as ReactLogo } from "../../../assets/icons/copy.svg";
+import { Copy } from '../../../assets/icons';
 
 import useStream from '../../../contexts/Stream/useStream';
+import Snackbar from '../snackbar/Snackbar';
 
 import './StreamMetadata.css';
+import Button from '../../common/Button';
 
-const StreamMetadata = () => { 
+const StreamMetadata = ({ toggleMetadata }) => { 
   const { activeStream } = useStream();
 
   const { active, startTime, state } = activeStream.stream;
   const { userAvatar, userName, streamTitle } = activeStream.metadata;
   const [timeSince, setTimeSince] = useState(getTimeSince(startTime));
   const intervalId = useRef(null);
+  const [showSnackbar, setSnackbar] = useState(false);
+
+  const isOS = () => {
+    return navigator.userAgent.match(/ipad|iphone/i);
+  }
 
   useEffect(() => {
     const pauseCounter = () => {
@@ -34,13 +41,36 @@ const StreamMetadata = () => {
   }, [active, startTime]);
 
   const copyText = (testUrl) => {
-    navigator.clipboard.writeText(testUrl);
+    
+    if(isOS()) {
+      //copy to clipboard for iOS safari
+      let textArea = document.createElement('textArea');
+      textArea.value = testUrl;
+      document.body.appendChild(textArea);
+
+      let range = document.createRange();
+      range.selectNodeContents(textArea);
+      let selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      textArea.setSelectionRange(0, 999999);
+
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+    } else {
+      navigator.clipboard.writeText(testUrl);
+    }
+    setSnackbar(true);
+    setTimeout(() => {
+      setSnackbar(false);
+    }, 2000);
   }
-
   
-
   return (
     <div className="metadata-content">
+      <div className="stream-meta-close">
+        <Button onClick={() => toggleMetadata()}>Cross</Button>
+      </div>
       <div className="stream-meta-details">
         <img
           className="stream-meta-avatar"
@@ -62,9 +92,12 @@ const StreamMetadata = () => {
         Share this live stream
         <div className="stream-meta-sharelink">
           https://myurl.com/item1
-          <button onClick={() => copyText("https://myurl.com/item1")}><ReactLogo /></button>
+          <button onClick={() => copyText("https://myurl.com/item1")}>
+            <Copy />
+          </button>
         </div>
       </div>
+      <Snackbar showSnackbar={showSnackbar} text="Copied!" />
     </div>
   );
 };

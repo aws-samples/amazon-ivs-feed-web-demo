@@ -1,9 +1,27 @@
 
 .snackbar {
-  height: 4.6rem;
-  padding-left: 2rem;
-  padding-right: 2rem;
-  background-color: #1BC718;
-  font-size: 1.4rem;
+  position: absolute;
+  top: 20px;
+  left: calc(50% - 46px);
+  z-index: 100;
+  height: 46px;
+  padding-left: 20px;
+  padding-right: 20px;
+  background-color: var(--color-green);
+  font-size: 14px;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  opacity: 0;
+  transition: 0.2s ease;
+}
+
+.snackbar svg {
+  margin-right: 12px;
+}
+
+.snackbar.visible {
+  opacity: 1;
 }

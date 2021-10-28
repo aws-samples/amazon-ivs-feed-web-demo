@@ -1,18 +1,24 @@
 .metadata-content {
   padding:34px 24px;
-  /* padding: 2rem 1.5rem;
-  color: white;
-  text-align: center;
-  font-size: 20px; */
   width: 100%;
+  position: relative;
 }
 
-.stream-meta {
-  /* padding: 20px 10px; */
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-  justify-content: center;
+.stream-meta-close {
+  display: none;
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+.stream-meta-close .button {
+  background: var(--color-black);
+}
+
+@media (max-width: 839px) {
+  .stream-meta-close {
+    display: block;
+  }
 }
 
 .stream-meta-details {
@@ -83,6 +89,7 @@
   padding-left: 16px;
   color: var(--color-silver);
   margin-top: 8px;
+  position: relative;
 }
 
 .stream-meta-sharelink svg {
