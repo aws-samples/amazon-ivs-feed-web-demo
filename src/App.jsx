@@ -52,43 +52,46 @@ const App = () => {
 
   const toggleMetadata = useCallback(
     (show = !metadataVisible, transition = true) => {
-      const { scrollHeight: contentHeight, style } = metadataRef.current;
-      style.transition = transition ? 'height 0.2s ease-out' : '';
+      if (metadataRef.current) {
+        const { scrollHeight: contentHeight, style } = metadataRef.current;
+        style.transition = transition ? 'height 0.2s ease-out' : '';
 
+        if (show) {
+          // Show metadata
+          style.height = isMobileView.current ? `${contentHeight}px` : '100%';
+          metadataRef.current.addEventListener(
+            'transitionend',
+            () => (style.height = null),
+            { once: true }
+          );
+        } else {
+          // Hide metadata
+          if (transition) {
+            requestAnimationFrame(() => {
+              style.height = `${contentHeight}px`;
+              requestAnimationFrame(() => (style.height = '0'));
+            });
+          } else style.height = '0';
+        }
 
-      if (show) {
-        // Show metadata
-        style.height = isMobileView.current ? `${contentHeight}px` : '100%';
-        metadataRef.current.addEventListener(
-          'transitionend',
-          () => (style.height = null),
-          { once: true }
-        );
-      } else {
-        // Hide metadata
-        if (transition) {
-          requestAnimationFrame(() => {
-            style.height = `${contentHeight}px`;
-            requestAnimationFrame(() => (style.height = '0'));
-          });
-        } else style.height = '0';
+        setMetadataVisible(show);
       }
-
-      setMetadataVisible(show);
     },
     [metadataVisible]
   );
 
   return (
     <div className="grid">
-      <Feed toggleMetadata={toggleMetadata} />
-      {!!activeStream && 
+      <div className="feed">
+        <Feed toggleMetadata={toggleMetadata} />
+      </div>
+      {!!activeStream && (
         <div ref={metadataRef} className="metadata">
           <StreamMetadata />
         </div>
-      }
+      )}
     </div>
   );
-}
+};
 
 export default App;

@@ -10,9 +10,7 @@ const getRandomColor = () => {
 };
 
 const getTimeSince = (dateTime) => {
-  let secondsDiff = Math.floor(
-    (new Date() - new Date(dateTime).getTime()) / 1000,
-  );
+  let secondsDiff = Math.floor((new Date() - new Date(dateTime).getTime()) / 1000);
 
   const days = Math.floor(secondsDiff / 86400);
   secondsDiff -= days * 86400;
