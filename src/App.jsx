@@ -33,13 +33,13 @@ const App = () => {
 
   useEffect(() => {
     if (streams.length > 0 && activeStream.id !== params.id) {
-      const id = isNaN(parseInt(params.id)) || (params.id > streams.length - 1) ? 0 : params.id
+      const id = isNaN(parseInt(params.id)) || (params.id > (streams.length - 1)) ? 0 : params.id
       setActiveStream(id);
     }
   }, [streams]);
 
   useEffect(() => {
-    if(activeStream) {
+    if(activeStream && activeStream.id !== params.id) {
       const obj = { Page: activeStream.id, Url: activeStream.id };
       window.history.pushState(obj, obj.Page, obj.Url);
     }

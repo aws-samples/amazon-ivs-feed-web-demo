@@ -38,7 +38,7 @@ const StreamProvider = ({ children }) => {
     (pos) => {
       const len = state.streams.length;
       const activeStream = state.streams[((pos % len) + len) % len];
-      dispatch({ type: actionTypes.SET_ACTIVE_STREAM, activeStream, pos });
+      dispatch({ type: actionTypes.SET_ACTIVE_STREAM, activeStream, pos: activeStream.id });
     },
     [state.streams]
   );
