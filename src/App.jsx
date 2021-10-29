@@ -49,14 +49,12 @@ const App = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
-
   const toggleMetadata = useCallback(
     (show = !metadataVisible, transition = true) => {
       if (metadataRef.current) {
-      const { scrollHeight: contentHeight, style } = metadataRef.current;
-      style.transition = transition ? 'height 0.2s ease-out' : '';
-      
+        const { scrollHeight: contentHeight, style } = metadataRef.current;
+        style.transition = transition ? 'height 0.2s ease-out' : '';
+
         if (show) {
           // Show metadata
           style.height = isMobileView.current ? `${contentHeight}px` : '100%';
@@ -77,12 +75,6 @@ const App = () => {
 
         setMetadataVisible(show);
       }
-<<<<<<< HEAD
-=======
-
-      setMetadataVisible(show);
-      }
->>>>>>> 70931e8c0a79ef20245e63e1bac2ebd0f96b226f
     },
     [metadataVisible]
   );
