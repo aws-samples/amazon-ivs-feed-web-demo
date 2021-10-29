@@ -2,16 +2,18 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Feed from './components/feed';
 import StreamMetadata from './components/feed/stream-metadata';
 import useStream from './contexts/Stream/useStream';
+import { useParams } from 'react-router-dom';
 
 import './App.css';
 
 const feedJSON = `${process.env.PUBLIC_URL}/feed.json`;
 
 const App = () => {
-  const { setStreams, activeStream } = useStream();
+  const { setStreams, activeStream, setActiveStream, streams } = useStream();
   const [metadataVisible, setMetadataVisible] = useState(true);
   const isMobileView = useRef(false);
   const metadataRef = useRef();
+  const params = useParams();
 
   useEffect(() => {
     const fetchStreams = async () => {
@@ -28,6 +30,21 @@ const App = () => {
 
     fetchStreams();
   }, [setStreams]);
+
+  useEffect(() => {
+    if (streams && streams.length > 0 && activeStream.id !== params.id) {
+      const id =
+        isNaN(parseInt(params.id)) || params.id > streams.length - 1 ? 0 : params.id;
+      setActiveStream(id);
+    }
+  }, [streams]);
+
+  useEffect(() => {
+    if (activeStream && activeStream.id !== params.id) {
+      const obj = { Page: activeStream.id, Url: activeStream.id };
+      window.history.pushState(obj, obj.Page, obj.Url);
+    }
+  }, [activeStream]);
 
   useEffect(() => {
     const handleWindowResize = () => {

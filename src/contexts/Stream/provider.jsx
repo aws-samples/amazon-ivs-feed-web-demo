@@ -19,9 +19,9 @@ const reducer = (state, action) => {
       return { streams, activeStream: streams[0], pos: 0 };
     }
     case actionTypes.SET_ACTIVE_STREAM: {
-      const { stream } = action;
-      const pos = state.streams.findIndex((s) => s.id === stream.id);
-      return { ...state, activeStream: stream, pos };
+      const { activeStream } = action;
+      const pos = state.streams.findIndex((s) => s.id === activeStream.id);
+      return { ...state, activeStream, pos };
     }
     default:
       throw new Error('Unexpected action type');
@@ -35,9 +35,18 @@ const StreamProvider = ({ children }) => {
     dispatch({ type: actionTypes.SET_STREAMS, streams });
   }, []);
 
-  const setActiveStream = useCallback((stream) => {
-    dispatch({ type: actionTypes.SET_ACTIVE_STREAM, stream });
-  }, []);
+  const setActiveStream = useCallback(
+    (pos) => {
+      const len = state.streams.length;
+      const activeStream = state.streams[((pos % len) + len) % len];
+      dispatch({
+        type: actionTypes.SET_ACTIVE_STREAM,
+        activeStream,
+        pos: activeStream.id
+      });
+    },
+    [state.streams]
+  );
 
   const value = useMemo(() => {
     let { activeStream, pos } = state;
@@ -55,8 +64,8 @@ const StreamProvider = ({ children }) => {
       nextStream,
       prevStream,
       setStreams,
-      gotoNextStream: () => setActiveStream(nextStream),
-      gotoPrevStream: () => setActiveStream(prevStream)
+      gotoNextStream: () => setActiveStream(pos + 1),
+      gotoPrevStream: () => setActiveStream(pos - 1)
     };
   }, [state, setStreams, setActiveStream]);
 
