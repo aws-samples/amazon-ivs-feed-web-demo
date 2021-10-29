@@ -38,7 +38,7 @@ const StreamProvider = ({ children }) => {
     (pos) => {
       const len = state.streams.length;
       const activeStream = state.streams[((pos % len) + len) % len];
-      dispatch({ type: actionTypes.SET_ACTIVE_STREAM, activeStream, pos });
+      dispatch({ type: actionTypes.SET_ACTIVE_STREAM, activeStream, pos: activeStream.id });
     },
     [state.streams]
   );
@@ -53,9 +53,9 @@ const StreamProvider = ({ children }) => {
   );
 
   const value = useMemo(() => {
-    const { activeStream } = state;
-    return { activeStream, setStreams, nextStream, prevStream };
-  }, [state, setStreams, nextStream, prevStream]);
+    const { activeStream, streams } = state;
+    return { activeStream, streams, setStreams, nextStream, prevStream, setActiveStream };
+  }, [state, setStreams, nextStream, prevStream, setActiveStream]);
 
   return <StreamContext.Provider value={value}>{children}</StreamContext.Provider>;
 };
