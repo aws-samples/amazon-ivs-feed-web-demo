@@ -13,9 +13,10 @@ const StreamMetadata = ({ toggleMetadata }) => {
 
   const { active, startTime, state } = activeStream.stream;
   const { userAvatar, userName, streamTitle } = activeStream.metadata;
-  const [timeSince, setTimeSince] = useState(getTimeSince(startTime));
   const intervalId = useRef(null);
+  const [timeSince, setTimeSince] = useState(getTimeSince(startTime));
   const [showSnackbar, setSnackbar] = useState(false);
+  const currentURL = `${window.location.origin}/${activeStream.id}`;
 
   const isOS = () => {
     return navigator.userAgent.match(/ipad|iphone/i);
@@ -64,8 +65,7 @@ const StreamMetadata = ({ toggleMetadata }) => {
     setTimeout(() => {
       setSnackbar(false);
     }, 2000);
-  }
-  
+  }  
   return (
     <div className="metadata-content">
       <div className="stream-meta-close">
@@ -91,8 +91,8 @@ const StreamMetadata = ({ toggleMetadata }) => {
       <div className="stream-meta-share">
         Share this live stream
         <div className="stream-meta-sharelink">
-          https://myurl.com/item1
-          <button onClick={() => copyText("https://myurl.com/item1")}>
+          {currentURL}
+          <button onClick={() => copyText(currentURL)}>
             <Copy />
           </button>
         </div>

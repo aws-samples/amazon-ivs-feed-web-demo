@@ -53,9 +53,9 @@ const StreamProvider = ({ children }) => {
   );
 
   const value = useMemo(() => {
-    const { activeStream } = state;
-    return { activeStream, setStreams, nextStream, prevStream };
-  }, [state, setStreams, nextStream, prevStream]);
+    const { activeStream, streams } = state;
+    return { activeStream, streams, setStreams, nextStream, prevStream, setActiveStream };
+  }, [state, setStreams, nextStream, prevStream, setActiveStream]);
 
   return <StreamContext.Provider value={value}>{children}</StreamContext.Provider>;
 };
