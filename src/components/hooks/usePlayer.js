@@ -23,7 +23,7 @@ const usePlayer = (video) => {
 
       const renderBlur = () => {
         const draw = () => {
-          if (canvas.current && player.current && !player.current.isPaused()) {
+          if (canvas.current) {
             const can = canvas.current;
             const ctx = can.getContext('2d');
             ctx.drawImage(video.current, 0, 0, can.width, can.height);
