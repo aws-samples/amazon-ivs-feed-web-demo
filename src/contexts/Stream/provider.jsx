@@ -31,43 +31,53 @@ const reducer = (state, action) => {
 const StreamProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
+  const getStream = useCallback(
+    (pos) => {
+      const len = state.streams.length;
+      return state.streams[((pos % len) + len) % len];
+    },
+    [state.streams]
+  );
+
   const setStreams = useCallback((streams) => {
     dispatch({ type: actionTypes.SET_STREAMS, streams });
   }, []);
 
   const setActiveStream = useCallback(
     (pos) => {
-      const len = state.streams.length;
-      const activeStream = state.streams[((pos % len) + len) % len];
+      const activeStream = getStream(pos);
       dispatch({
         type: actionTypes.SET_ACTIVE_STREAM,
         activeStream,
         pos: activeStream.id
       });
     },
-    [state.streams]
+    [getStream]
   );
 
-  const value = useMemo(() => {
-    let { activeStream, pos } = state;
+  const gotoNextStream = useCallback(
+    () => setActiveStream(state.pos + 1),
+    [setActiveStream, state.pos]
+  );
 
-    const getStream = (stPos) => {
-      const len = state.streams.length;
-      return state.streams[((stPos % len) + len) % len];
-    };
+  const gotoPrevStream = useCallback(
+    () => setActiveStream(state.pos - 1),
+    [setActiveStream, state.pos]
+  );
 
-    const nextStream = getStream(pos + 1);
-    const prevStream = getStream(pos - 1);
-
-    return {
-      activeStream,
-      nextStream,
-      prevStream,
+  const value = useMemo(
+    () => ({
       setStreams,
-      gotoNextStream: () => setActiveStream(pos + 1),
-      gotoPrevStream: () => setActiveStream(pos - 1)
-    };
-  }, [state, setStreams, setActiveStream]);
+      setActiveStream,
+      gotoNextStream,
+      gotoPrevStream,
+      streams: state.streams,
+      activeStream: state.activeStream,
+      nextStream: getStream(state.pos + 1),
+      prevStream: getStream(state.pos - 1)
+    }),
+    [state, setStreams, setActiveStream, gotoNextStream, gotoPrevStream, getStream]
+  );
 
   return <StreamContext.Provider value={value}>{children}</StreamContext.Provider>;
 };

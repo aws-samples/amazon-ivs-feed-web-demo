@@ -15,12 +15,15 @@ const Feed = ({ toggleMetadata }) => {
     useStream();
   const [v1, v2, v3] = [useRef(1), useRef(2), useRef(3)];
   const players = [usePlayer(v1), usePlayer(v2), usePlayer(v3)];
-  const streamPlayerMap = useMemo(() => new Map(), []);
+  const loadedStreamsMap = useMemo(() => new Map(), []); // key: Player ID (PID), value: loaded stream
   const activePlayer =
-    players.find(({ instance }) => instance && !instance.isPaused()) || players[0];
+    (!!activeStream &&
+      !!loadedStreamsMap.size &&
+      players.find(({ pid }) => loadedStreamsMap.get(pid)?.id === activeStream.id)) ||
+    players[0];
 
   const init = useRef(true);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (activeStream && nextStream && prevStream) {
       const streams = [activeStream, nextStream, prevStream];
 
@@ -28,39 +31,38 @@ const Feed = ({ toggleMetadata }) => {
       if (init.current) {
         players.forEach((player, i) => {
           const { id, stream } = streams[i];
+          loadedStreamsMap.set(player.pid, { id, ...stream });
           player.preload(stream.playbackUrl);
-          streamPlayerMap.set(id, player);
         });
+
         players[0].instance.play();
         init.current = false;
         return;
       }
 
-      // transition players to the next state
+      // transition players to the next preloaded state
+      if (loadedStreamsMap.size) {
+        players.forEach((player) => {
+          const { id: loadedStreamId } = loadedStreamsMap.get(player.pid);
 
-      let nextActivePlayer, previousActivePlayer, preloadPlayer, unloadedStreamId;
-      streamPlayerMap.forEach((player, streamId, map) => {
-        if (streamId === activeStream.id) {
-          nextActivePlayer = player;
-        } else if (streamId === nextStream.id || streamId === prevStream.id) {
-          previousActivePlayer = player;
-        } else {
-          preloadPlayer = player;
-          unloadedStreamId = streamId;
-        }
-      });
-
-      // pause the previously active player
-      previousActivePlayer.instance.pause();
-
-      // play the next active player
-      nextActivePlayer.instance.play();
-
-      // preload and pause the thrid player for the new/unloaded stream
-      const streamToPreload = streams.find((s) => !streamPlayerMap.has(s.id));
-      preloadPlayer.preload(streamToPreload.stream.playbackUrl);
-      streamPlayerMap.set(streamToPreload.id, preloadPlayer);
-      streamPlayerMap.delete(unloadedStreamId);
+          if (loadedStreamId === activeStream.id) {
+            player.instance.play();
+          } else if (
+            loadedStreamId === nextStream.id ||
+            loadedStreamId === prevStream.id
+          ) {
+            player.instance.pause();
+          } else {
+            const loadedStreamIds = [...loadedStreamsMap].map(([_, stream]) => stream.id);
+            const { id, stream } = streams.find((s) => !loadedStreamIds.includes(s.id));
+            player.preload(stream.playbackUrl);
+            loadedStreamsMap.set(player.pid, { id, ...stream });
+            if (id === activeStream.id) {
+              player.instance.play();
+            }
+          }
+        });
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeStream]);
@@ -78,10 +80,6 @@ const Feed = ({ toggleMetadata }) => {
     console.warn('The current browser does not support the Amazon IVS player.');
     return null;
   }
-
-  console.log(
-    !activePlayer.loading && activePlayer.instance && activePlayer.instance.isPaused()
-  );
 
   return (
     <div className="feed-content">
@@ -102,12 +100,15 @@ const Feed = ({ toggleMetadata }) => {
       </div>
 
       <div className="player-video">
-        {players.map(({ pid, instance, video }) => {
-          const isVisible = instance && !instance.isPaused();
-          const style = { display: isVisible ? 'block' : 'none' };
-          return <video key={pid} ref={video} style={style} playsInline muted />;
+        {players.map(({ pid, video, canvas }) => {
+          const style = { display: pid === activePlayer.pid ? 'block' : 'none' };
+          return (
+            <React.Fragment key={pid}>
+              <video ref={video} style={style} playsInline muted />;
+              <canvas ref={canvas} style={style} />
+            </React.Fragment>
+          );
         })}
-        <canvas ref={activePlayer.canvas} />
 
         <Spinner loading={activePlayer.loading && !activePlayer.paused} />
 

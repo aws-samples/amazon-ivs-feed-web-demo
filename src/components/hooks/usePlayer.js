@@ -21,20 +21,9 @@ const usePlayer = (video) => {
       const { ENDED, PLAYING, READY } = PlayerState;
       const { ERROR } = PlayerEventType;
 
-      const onStateChange = () => {
-        const newState = player.current.getState();
-        console.log(`Player ${pid.current} State - ${newState}`);
-        setLoading(newState !== PLAYING);
-        setPaused(player.current.isPaused());
-      };
-
-      const onError = (err) => {
-        console.warn(`Player ${pid.current} Event - ERROR:`, err);
-      };
-
       const renderBlur = () => {
         const draw = () => {
-          if (player.current && !player.current.isPaused()) {
+          if (canvas.current && player.current && !player.current.isPaused()) {
             const can = canvas.current;
             const ctx = can.getContext('2d');
             ctx.drawImage(video.current, 0, 0, can.width, can.height);
@@ -44,11 +33,22 @@ const usePlayer = (video) => {
         requestAnimationFrame(draw);
       };
 
+      const onStateChange = () => {
+        const newState = player.current.getState();
+        if (newState === PLAYING) renderBlur();
+        setLoading(newState !== PLAYING);
+        setPaused(player.current.isPaused());
+        console.log(`Player ${pid.current} State - ${newState}`);
+      };
+
+      const onError = (err) => {
+        console.warn(`Player ${pid.current} Event - ERROR:`, err);
+      };
+
       player.current = create();
       player.current.attachHTMLVideoElement(video.current);
 
       player.current.addEventListener(READY, onStateChange);
-      player.current.addEventListener(PLAYING, renderBlur);
       player.current.addEventListener(PLAYING, onStateChange);
       player.current.addEventListener(ENDED, onStateChange);
       player.current.addEventListener(ERROR, onError);
@@ -56,7 +56,6 @@ const usePlayer = (video) => {
       return () => {
         player.current?.removeEventListener(READY, onStateChange);
         player.current?.removeEventListener(PLAYING, onStateChange);
-        player.current?.removeEventListener(PLAYING, renderBlur);
         player.current?.removeEventListener(ENDED, onStateChange);
         player.current?.removeEventListener(ERROR, onError);
       };
@@ -64,10 +63,8 @@ const usePlayer = (video) => {
   }, [video]);
 
   const preload = (playbackUrl) => {
-    console.log('preloading');
     player.current.pause();
     player.current.load(playbackUrl);
-    return player.current;
   };
 
   const toggleMute = () => {
@@ -85,11 +82,29 @@ const usePlayer = (video) => {
     setPaused(player.current.isPaused());
   };
 
+  const setABR = (enable) => {
+    if (typeof enable === 'boolean') {
+      const isAbrEnabled = player.current.isAutoQualityMode();
+
+      if (enable && !isAbrEnabled) {
+        // Enable the Adaptive Bitrate (ABR) streaming algorithm
+        player.current.setAutoQualityMode(true);
+      }
+
+      if (!enable && isAbrEnabled) {
+        // Disable the Adaptive Bitrate (ABR) streaming algorithm
+        const lowestQuality = player.current.getQualities().pop();
+        player.current.setQuality(lowestQuality);
+      }
+    }
+  };
+
   return {
     instance: player.current,
     pid: pid.current,
     togglePlayPause,
     toggleMute,
+    setABR,
     loading,
     paused,
     muted,

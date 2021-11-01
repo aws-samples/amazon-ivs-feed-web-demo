@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Feed from './components/feed';
 import StreamMetadata from './components/feed/stream-metadata';
@@ -63,7 +64,6 @@ const App = () => {
     handleWindowResize();
     window.addEventListener('resize', handleWindowResize);
     return () => window.removeEventListener('resize', handleWindowResize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggleMetadata = useCallback(
