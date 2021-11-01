@@ -4,6 +4,12 @@
   overflow: hidden;
 }
 
+.feed {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
 .metadata {
   width: var(--width-desktop-metadata);
   background: var(--color-mid-gray);
@@ -29,6 +35,10 @@
 @media (max-width: 839px) {
   .grid {
     flex-direction: column;
+  }
+
+  .feed {
+    min-height: var(--height-min-mobile-feed);
   }
 
   .metadata {

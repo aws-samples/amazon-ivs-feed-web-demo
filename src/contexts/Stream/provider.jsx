@@ -19,7 +19,8 @@ const reducer = (state, action) => {
       return { streams, activeStream: streams[0], pos: 0 };
     }
     case actionTypes.SET_ACTIVE_STREAM: {
-      const { pos, activeStream } = action;
+      const { activeStream } = action;
+      const pos = state.streams.findIndex((s) => s.id === activeStream.id);
       return { ...state, activeStream, pos };
     }
     default:
@@ -30,32 +31,53 @@ const reducer = (state, action) => {
 const StreamProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
+  const getStream = useCallback(
+    (pos) => {
+      const len = state.streams.length;
+      return state.streams[((pos % len) + len) % len];
+    },
+    [state.streams]
+  );
+
   const setStreams = useCallback((streams) => {
     dispatch({ type: actionTypes.SET_STREAMS, streams });
   }, []);
 
   const setActiveStream = useCallback(
     (pos) => {
-      const len = state.streams.length;
-      const activeStream = state.streams[((pos % len) + len) % len];
-      dispatch({ type: actionTypes.SET_ACTIVE_STREAM, activeStream, pos: activeStream.id });
+      const activeStream = getStream(pos);
+      dispatch({
+        type: actionTypes.SET_ACTIVE_STREAM,
+        activeStream,
+        pos: activeStream.id
+      });
     },
-    [state.streams]
+    [getStream]
   );
 
-  const nextStream = useCallback(
+  const gotoNextStream = useCallback(
     () => setActiveStream(state.pos + 1),
     [setActiveStream, state.pos]
   );
-  const prevStream = useCallback(
+
+  const gotoPrevStream = useCallback(
     () => setActiveStream(state.pos - 1),
     [setActiveStream, state.pos]
   );
 
-  const value = useMemo(() => {
-    const { activeStream, streams } = state;
-    return { activeStream, streams, setStreams, nextStream, prevStream, setActiveStream };
-  }, [state, setStreams, nextStream, prevStream, setActiveStream]);
+  const value = useMemo(
+    () => ({
+      setStreams,
+      setActiveStream,
+      gotoNextStream,
+      gotoPrevStream,
+      streams: state.streams,
+      activeStream: state.activeStream,
+      nextStream: getStream(state.pos + 1),
+      prevStream: getStream(state.pos - 1)
+    }),
+    [state, setStreams, setActiveStream, gotoNextStream, gotoPrevStream, getStream]
+  );
 
   return <StreamContext.Provider value={value}>{children}</StreamContext.Provider>;
 };

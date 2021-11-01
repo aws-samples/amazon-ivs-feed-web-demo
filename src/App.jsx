@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Feed from './components/feed';
 import StreamMetadata from './components/feed/stream-metadata';
@@ -32,18 +33,19 @@ const App = () => {
   }, [setStreams]);
 
   useEffect(() => {
-    if (streams.length > 0 && activeStream.id !== params.id) {
-      const id = isNaN(parseInt(params.id)) || (params.id > (streams.length - 1)) ? 0 : params.id
+    if (streams && streams.length > 0 && activeStream.id !== params.id) {
+      const id =
+        isNaN(parseInt(params.id)) || params.id > streams.length - 1 ? 0 : params.id;
       setActiveStream(id);
     }
   }, [streams]);
 
   useEffect(() => {
-    if(activeStream && activeStream.id !== params.id) {
+    if (activeStream && activeStream.id !== params.id) {
       const obj = { Page: activeStream.id, Url: activeStream.id };
       window.history.pushState(obj, obj.Page, obj.Url);
     }
-  }, [activeStream])
+  }, [activeStream]);
 
   useEffect(() => {
     const handleWindowResize = () => {
@@ -62,54 +64,50 @@ const App = () => {
     handleWindowResize();
     window.addEventListener('resize', handleWindowResize);
     return () => window.removeEventListener('resize', handleWindowResize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-
 
   const toggleMetadata = useCallback(
     (show = !metadataVisible, transition = true) => {
       if (metadataRef.current) {
+        const { scrollHeight: contentHeight, style } = metadataRef.current;
+        style.transition = transition ? 'height 0.2s ease-out' : '';
 
-      const { scrollHeight: contentHeight, style } = metadataRef.current;
-      style.transition = transition ? 'height 0.2s ease-out' : '';
+        if (show) {
+          // Show metadata
+          style.height = isMobileView.current ? `${contentHeight}px` : '100%';
+          metadataRef.current.addEventListener(
+            'transitionend',
+            () => (style.height = null),
+            { once: true }
+          );
+        } else {
+          // Hide metadata
+          if (transition) {
+            requestAnimationFrame(() => {
+              style.height = `${contentHeight}px`;
+              requestAnimationFrame(() => (style.height = '0'));
+            });
+          } else style.height = '0';
+        }
 
-
-      if (show) {
-        // Show metadata
-        style.height = isMobileView.current ? `${contentHeight}px` : '100%';
-        metadataRef.current.addEventListener(
-          'transitionend',
-          () => (style.height = null),
-          { once: true }
-        );
-      } else {
-        // Hide metadata
-        if (transition) {
-          requestAnimationFrame(() => {
-            style.height = `${contentHeight}px`;
-            requestAnimationFrame(() => (style.height = '0'));
-          });
-        } else style.height = '0';
-      }
-
-      setMetadataVisible(show);
+        setMetadataVisible(show);
       }
     },
     [metadataVisible]
   );
 
   return (
-    
     <div className="grid">
-      <Feed toggleMetadata={toggleMetadata} />
-      {!!activeStream && 
+      <div className="feed">
+        <Feed toggleMetadata={toggleMetadata} />
+      </div>
+      {!!activeStream && (
         <div ref={metadataRef} className="metadata">
           <StreamMetadata toggleMetadata={toggleMetadata} />
         </div>
-      }
+      )}
     </div>
   );
-}
+};
 
 export default App;
