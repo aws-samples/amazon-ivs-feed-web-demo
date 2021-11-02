@@ -18,7 +18,7 @@ const usePlayer = (video) => {
 
   useEffect(() => {
     if (isPlayerSupported) {
-      const { ENDED, PLAYING, READY } = PlayerState;
+      const { ENDED, PLAYING, READY, BUFFERING } = PlayerState;
       const { ERROR } = PlayerEventType;
 
       const renderBlur = () => {
@@ -50,12 +50,14 @@ const usePlayer = (video) => {
 
       player.current.addEventListener(READY, onStateChange);
       player.current.addEventListener(PLAYING, onStateChange);
+      player.current.addEventListener(BUFFERING, onStateChange);
       player.current.addEventListener(ENDED, onStateChange);
       player.current.addEventListener(ERROR, onError);
 
       return () => {
         player.current?.removeEventListener(READY, onStateChange);
         player.current?.removeEventListener(PLAYING, onStateChange);
+        player.current?.removeEventListener(BUFFERING, onStateChange);
         player.current?.removeEventListener(ENDED, onStateChange);
         player.current?.removeEventListener(ERROR, onError);
       };

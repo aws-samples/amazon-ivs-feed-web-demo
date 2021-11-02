@@ -8,7 +8,7 @@ import Snackbar from '../snackbar/Snackbar';
 import './StreamMetadata.css';
 import Button from '../../common/Button';
 
-const StreamMetadata = ({ toggleMetadata }) => { 
+const StreamMetadata = ({ toggleMetadata }) => {
   const { activeStream } = useStream();
 
   const { active, startTime, state } = activeStream.stream;
@@ -20,7 +20,7 @@ const StreamMetadata = ({ toggleMetadata }) => {
 
   const isOS = () => {
     return navigator.userAgent.match(/ipad|iphone/i);
-  }
+  };
 
   useEffect(() => {
     const pauseCounter = () => {
@@ -42,8 +42,7 @@ const StreamMetadata = ({ toggleMetadata }) => {
   }, [active, startTime]);
 
   const copyText = (testUrl) => {
-    
-    if(isOS()) {
+    if (isOS()) {
       //copy to clipboard for iOS safari
       let textArea = document.createElement('textArea');
       textArea.value = testUrl;
@@ -65,18 +64,14 @@ const StreamMetadata = ({ toggleMetadata }) => {
     setTimeout(() => {
       setSnackbar(false);
     }, 2000);
-  }  
+  };
   return (
     <div className="metadata-content">
       <div className="stream-meta-close">
         <Button onClick={() => toggleMetadata()}>Cross</Button>
       </div>
       <div className="stream-meta-details">
-        <img
-          className="stream-meta-avatar"
-          src={userAvatar}
-          alt={`${userName} avatar`}
-        />
+        <img className="stream-meta-avatar" src={userAvatar} alt={`${userName} avatar`} />
 
         <div className="stream-meta-text">
           <p className="stream-meta-username">{userName}</p>
