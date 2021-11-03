@@ -4,19 +4,16 @@ import App from './App';
 import * as serviceWorker from './serviceWorker';
 
 import StreamProvider from './contexts/Stream/provider';
-import {
-  BrowserRouter as Router,
-  Route,
-  Redirect
-} from "react-router-dom";
+import { BrowserRouter as Router, Route, Redirect } from 'react-router-dom';
 
 import './index.css';
+import './polyfills';
 
 ReactDOM.render(
   <React.StrictMode>
     <Router>
       <StreamProvider>
-       <Route exact path="/">
+        <Route exact path="/">
           <Redirect to="/0" />
         </Route>
         <Route path="/:id">

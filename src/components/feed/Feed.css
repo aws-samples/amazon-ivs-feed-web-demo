@@ -12,9 +12,8 @@ canvas {
   bottom: 0;
   left: 0;
   right: 0;
-  filter: blur(20px);
   opacity: 0.6;
-  transform: scale(1.2);
+  object-fit: cover;
   z-index: -1;
 }
 

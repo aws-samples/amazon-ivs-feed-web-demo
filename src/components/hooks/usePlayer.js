@@ -24,6 +24,7 @@ const usePlayer = (video) => {
       const renderBlur = () => {
         const can = canvas.current;
         const ctx = can.getContext('2d');
+        ctx.filter = 'blur(3px)';
 
         const draw = () => {
           if (canvas.current) {
@@ -48,6 +49,7 @@ const usePlayer = (video) => {
       };
 
       player.current = create();
+      video.current.crossOrigin = 'anonymous';
       player.current.attachHTMLVideoElement(video.current);
 
       player.current.addEventListener(READY, onStateChange);
