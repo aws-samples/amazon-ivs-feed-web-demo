@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import Spinner from '../common/Spinner';
 import Button from '../common/Button';
 import Like from './like';
-import { Play } from '../../assets/icons';
 
 import useStream from '../../contexts/Stream/useStream';
 import usePlayer from '../hooks/usePlayer';
@@ -104,7 +103,7 @@ const Feed = ({ toggleMetadata }) => {
           const style = { display: pid === activePlayer.pid ? 'block' : 'none' };
           return (
             <React.Fragment key={pid}>
-              <video ref={video} style={style} playsInline muted />;
+              <video ref={video} style={style} playsInline muted />
               <canvas ref={canvas} style={style} />
             </React.Fragment>
           );
@@ -113,7 +112,7 @@ const Feed = ({ toggleMetadata }) => {
         <Spinner loading={activePlayer.loading && !activePlayer.paused} />
 
         <button className="btn-pause" onClick={activePlayer.togglePlayPause} tabIndex={1}>
-          {!activePlayer.loading && activePlayer.paused && <Play />}
+          {!activePlayer.loading && activePlayer.paused && <Button>Play</Button>}
         </button>
       </div>
     </div>

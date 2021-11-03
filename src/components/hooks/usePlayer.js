@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import 'context-filter-polyfill';
 
 const { isPlayerSupported, create, PlayerState, PlayerEventType } = window.IVSPlayer;
 
@@ -18,18 +19,21 @@ const usePlayer = (video) => {
 
   useEffect(() => {
     if (isPlayerSupported) {
-      const { ENDED, PLAYING, READY } = PlayerState;
+      const { ENDED, PLAYING, READY, BUFFERING } = PlayerState;
       const { ERROR } = PlayerEventType;
 
       const renderBlur = () => {
+        const can = canvas.current;
+        const ctx = can.getContext('2d');
+        ctx.filter = 'blur(3px)';
+
         const draw = () => {
           if (canvas.current) {
-            const can = canvas.current;
-            const ctx = can.getContext('2d');
             ctx.drawImage(video.current, 0, 0, can.width, can.height);
             requestAnimationFrame(draw);
           }
         };
+
         requestAnimationFrame(draw);
       };
 
@@ -46,16 +50,19 @@ const usePlayer = (video) => {
       };
 
       player.current = create();
+      video.current.crossOrigin = 'anonymous';
       player.current.attachHTMLVideoElement(video.current);
 
       player.current.addEventListener(READY, onStateChange);
       player.current.addEventListener(PLAYING, onStateChange);
+      player.current.addEventListener(BUFFERING, onStateChange);
       player.current.addEventListener(ENDED, onStateChange);
       player.current.addEventListener(ERROR, onError);
 
       return () => {
         player.current?.removeEventListener(READY, onStateChange);
         player.current?.removeEventListener(PLAYING, onStateChange);
+        player.current?.removeEventListener(BUFFERING, onStateChange);
         player.current?.removeEventListener(ENDED, onStateChange);
         player.current?.removeEventListener(ERROR, onError);
       };

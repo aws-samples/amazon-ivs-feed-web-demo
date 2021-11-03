@@ -9,11 +9,11 @@ canvas {
   height: 100%;
   position: absolute;
   top: 0;
+  bottom: 0;
   left: 0;
-  filter: blur(20px);
-  transform: scale(1.2);
+  right: 0;
+  opacity: 0.6;
   object-fit: cover;
-  opacity: 0.75;
   z-index: -1;
 }
 
