@@ -18,7 +18,7 @@ const StreamMetadata = ({ toggleMetadata }) => {
   const [showSnackbar, setSnackbar] = useState(false);
   const currentURL = `${window.location.origin}/${activeStream.id}`;
 
-  const isOS = () => {
+  const isIOS = () => {
     return navigator.userAgent.match(/ipad|iphone/i);
   };
 
@@ -41,11 +41,12 @@ const StreamMetadata = ({ toggleMetadata }) => {
     };
   }, [active, startTime]);
 
-  const copyText = (testUrl) => {
-    if (isOS()) {
+  const copyText = (url) => {
+    if (isIOS()) {
       //copy to clipboard for iOS safari
       let textArea = document.createElement('textArea');
-      textArea.value = testUrl;
+      textArea.value = url;
+      textArea.readOnly = true;
       document.body.appendChild(textArea);
 
       let range = document.createRange();
@@ -58,7 +59,7 @@ const StreamMetadata = ({ toggleMetadata }) => {
       document.execCommand('copy');
       document.body.removeChild(textArea);
     } else {
-      navigator.clipboard.writeText(testUrl);
+      navigator.clipboard.writeText(url);
     }
     setSnackbar(true);
     setTimeout(() => {
@@ -76,9 +77,7 @@ const StreamMetadata = ({ toggleMetadata }) => {
         <div className="stream-meta-text">
           <p className="stream-meta-username">{userName}</p>
 
-          <p className="stream-meta-state">
-            <span>{state}</span> for {timeSince}
-          </p>
+          <span className="stream-meta-state">{`${state} for ${timeSince}`}</span>
         </div>
       </div>
       <div className="stream-meta-title">{streamTitle}</div>

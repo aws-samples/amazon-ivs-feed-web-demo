@@ -22,14 +22,16 @@ const usePlayer = (video) => {
       const { ERROR } = PlayerEventType;
 
       const renderBlur = () => {
+        const can = canvas.current;
+        const ctx = can.getContext('2d');
+
         const draw = () => {
           if (canvas.current) {
-            const can = canvas.current;
-            const ctx = can.getContext('2d');
             ctx.drawImage(video.current, 0, 0, can.width, can.height);
             requestAnimationFrame(draw);
           }
         };
+
         requestAnimationFrame(draw);
       };
 
