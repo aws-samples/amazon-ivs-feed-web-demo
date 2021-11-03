@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import 'context-filter-polyfill';
 
 const { isPlayerSupported, create, PlayerState, PlayerEventType } = window.IVSPlayer;
 

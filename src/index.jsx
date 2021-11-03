@@ -7,7 +7,6 @@ import StreamProvider from './contexts/Stream/provider';
 import { BrowserRouter as Router, Route, Redirect } from 'react-router-dom';
 
 import './index.css';
-import './polyfills';
 
 ReactDOM.render(
   <React.StrictMode>
