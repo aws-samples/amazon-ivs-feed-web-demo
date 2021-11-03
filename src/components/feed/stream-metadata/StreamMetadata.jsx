@@ -11,7 +11,7 @@ import Button from '../../common/Button';
 const StreamMetadata = ({ toggleMetadata }) => { 
   const { activeStream } = useStream();
 
-  const { active, startTime, state } = activeStream.stream;
+  const { startTime, state } = activeStream.stream;
   const { userAvatar, userName, streamTitle } = activeStream.metadata;
   const intervalId = useRef(null);
   const [timeSince, setTimeSince] = useState(getTimeSince(startTime));
@@ -34,12 +34,12 @@ const StreamMetadata = ({ toggleMetadata }) => {
       }, 1000);
     };
 
-    active ? startCounter() : pauseCounter();
+    state === "LIVE" ? startCounter() : pauseCounter();
 
     return () => {
       if (intervalId.current) pauseCounter();
     };
-  }, [active, startTime]);
+  }, [startTime, timeSince]);
 
   const copyText = (testUrl) => {
     
