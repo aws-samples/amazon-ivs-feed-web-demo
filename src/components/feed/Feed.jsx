@@ -3,9 +3,11 @@ import React, { useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import Spinner from '../common/Spinner';
 import Button from '../common/Button';
 import Like from './like';
+import { Play } from '../../assets/icons';
 
 import useStream from '../../contexts/Stream/useStream';
 import usePlayer from '../hooks/usePlayer';
+import useThrottledCallback from '../hooks/useThrottledCallback';
 
 import './Feed.css';
 
@@ -17,9 +19,11 @@ const Feed = ({ toggleMetadata }) => {
   const loadedStreamsMap = useMemo(() => new Map(), []); // key: Player ID (PID), value: loaded stream
   const activePlayer =
     (!!activeStream &&
-      !!loadedStreamsMap.size &&
       players.find(({ pid }) => loadedStreamsMap.get(pid)?.id === activeStream.id)) ||
     players[0];
+
+  const throttledGotoNextStream = useThrottledCallback(gotoNextStream, 500);
+  const throttledGotoPrevStream = useThrottledCallback(gotoPrevStream, 500);
 
   const init = useRef(true);
   useLayoutEffect(() => {
@@ -30,11 +34,10 @@ const Feed = ({ toggleMetadata }) => {
       if (init.current) {
         players.forEach((player, i) => {
           const { id, stream } = streams[i];
+          const isStreamActive = id === activeStream.id;
+          player.preload(stream.playbackUrl, isStreamActive);
           loadedStreamsMap.set(player.pid, { id, ...stream });
-          player.preload(stream.playbackUrl);
         });
-
-        players[0].instance.play();
         init.current = false;
         return;
       }
@@ -43,22 +46,18 @@ const Feed = ({ toggleMetadata }) => {
       if (loadedStreamsMap.size) {
         players.forEach((player) => {
           const { id: loadedStreamId } = loadedStreamsMap.get(player.pid);
+          const isLoaded = (stream) => loadedStreamId === stream.id;
 
-          if (loadedStreamId === activeStream.id) {
+          if (isLoaded(activeStream)) {
             player.instance.play();
-          } else if (
-            loadedStreamId === nextStream.id ||
-            loadedStreamId === prevStream.id
-          ) {
+          } else if (isLoaded(nextStream) || isLoaded(prevStream)) {
             player.instance.pause();
           } else {
             const loadedStreamIds = [...loadedStreamsMap].map(([_, stream]) => stream.id);
             const { id, stream } = streams.find((s) => !loadedStreamIds.includes(s.id));
-            player.preload(stream.playbackUrl);
+            const isStreamActive = id === activeStream.id;
+            player.preload(stream.playbackUrl, isStreamActive);
             loadedStreamsMap.set(player.pid, { id, ...stream });
-            if (id === activeStream.id) {
-              player.instance.play();
-            }
           }
         });
       }
@@ -68,12 +67,12 @@ const Feed = ({ toggleMetadata }) => {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.keyCode === 38) gotoPrevStream(); // keyCode 38 : 'ArrowUp'
-      if (e.keyCode === 40) gotoNextStream(); // keyCode 38 : 'ArrowDown'
+      if (e.keyCode === 38) throttledGotoPrevStream(); // keyCode 38 : 'ArrowUp'
+      if (e.keyCode === 40) throttledGotoNextStream(); // keyCode 38 : 'ArrowDown'
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [gotoNextStream, gotoPrevStream]);
+  }, [throttledGotoNextStream, throttledGotoPrevStream]);
 
   if (!window.IVSPlayer.isPlayerSupported) {
     console.warn('The current browser does not support the Amazon IVS player.');
@@ -89,8 +88,8 @@ const Feed = ({ toggleMetadata }) => {
         </Button>
 
         <hr className="divider" />
-        <Button onClick={gotoPrevStream}>ChevronUp</Button>
-        <Button onClick={gotoNextStream}>ChevronDown</Button>
+        <Button onClick={throttledGotoPrevStream}>ChevronUp</Button>
+        <Button onClick={throttledGotoNextStream}>ChevronDown</Button>
 
         <span className="metadata-toggle">
           <hr className="divider" />
@@ -111,8 +110,12 @@ const Feed = ({ toggleMetadata }) => {
 
         <Spinner loading={activePlayer.loading && !activePlayer.paused} />
 
-        <button className="btn-pause" onClick={activePlayer.togglePlayPause} tabIndex={1}>
-          {!activePlayer.loading && activePlayer.paused && <Button>Play</Button>}
+        <button
+          className="btn-play-pause"
+          onClick={activePlayer.togglePlayPause}
+          tabIndex={1}
+        >
+          {!activePlayer.loading && activePlayer.paused && <Play className="btn-play" />}
         </button>
       </div>
     </div>

@@ -7,13 +7,15 @@ const Button = ({ children, onClick, ...otherProps }) => {
   const Icon = Icons[children] || children;
 
   const clickHandler = (e) => {
-    e.stopPropagation();
-    onClick(e);
+    if (onClick) {
+      e.stopPropagation();
+      onClick(e);
+    }
   };
 
   return (
     <button className="button" onClick={!!onClick && clickHandler} {...otherProps}>
-      <Icon />
+      {Array.isArray(Icon) ? Icon : <Icon />}
     </button>
   );
 };
