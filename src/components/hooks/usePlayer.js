@@ -6,12 +6,15 @@ const { isPlayerSupported, create, PlayerState, PlayerEventType } = window.IVSPl
 const usePlayer = (video) => {
   const player = useRef(null);
   const pid = useRef(video.current);
-  const canvas = useRef();
   const startPlaybackAfterLoad = useRef(false);
 
   const [loading, setLoading] = useState(false);
   const [muted, setMuted] = useState(true);
   const [paused, setPaused] = useState(false);
+
+  const log = (message) => {
+    console.log(`Player ${pid.current}: ${message}`);
+  };
 
   // handle case when autoplay with sound is blocked by browser
   useEffect(() => {
@@ -24,28 +27,10 @@ const usePlayer = (video) => {
       const { ENDED, PLAYING, READY, BUFFERING } = PlayerState;
       const { ERROR } = PlayerEventType;
 
-      const renderBlur = () => {
-        const can = canvas.current;
-        const ctx = can.getContext('2d');
-        ctx.filter = 'blur(3px)';
-
-        const draw = () => {
-          if (can && player.current.getState() !== READY) {
-            ctx.drawImage(video.current, 0, 0, can.width, can.height);
-            requestAnimationFrame(draw);
-          } else return;
-        };
-
-        requestAnimationFrame(draw);
-      };
-
       const onStateChange = () => {
         const newState = player.current.getState();
         setLoading(newState !== PLAYING);
         setPaused(player.current.isPaused());
-        if (newState === PLAYING) {
-          renderBlur();
-        }
         if (newState === READY && startPlaybackAfterLoad.current) {
           player.current.play();
         }
@@ -106,7 +91,7 @@ const usePlayer = (video) => {
     muted,
     preload,
     video,
-    canvas
+    log
   };
 };
 

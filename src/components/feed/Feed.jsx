@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo, useLayoutEffect } from 'react';
+import React, { useEffect, useRef, useMemo, useLayoutEffect, useCallback } from 'react';
 
 import Spinner from '../common/Spinner';
 import Button from '../common/Button';
@@ -74,6 +74,27 @@ const Feed = ({ toggleMetadata }) => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [throttledGotoNextStream, throttledGotoPrevStream]);
 
+  const blurredPlayerId = useRef(null);
+  const attachBlur = useCallback(
+    (canvas) => {
+      if (activePlayer && canvas) {
+        blurredPlayerId.current = activePlayer.pid;
+        const ctx = canvas.getContext('2d');
+        ctx.filter = 'blur(3px)';
+
+        const draw = (bid) => {
+          if (blurredPlayerId.current !== bid) return;
+
+          ctx.drawImage(activePlayer.video.current, 0, 0, canvas.width, canvas.height);
+          requestAnimationFrame(() => draw(bid));
+        };
+        requestAnimationFrame(() => draw(blurredPlayerId.current));
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activePlayer.pid]
+  );
+
   if (!window.IVSPlayer.isPlayerSupported) {
     console.warn('The current browser does not support the Amazon IVS player.');
     return null;
@@ -98,15 +119,16 @@ const Feed = ({ toggleMetadata }) => {
       </div>
 
       <div className="player-video">
-        {players.map(({ pid, video, canvas }) => {
-          const style = { display: pid === activePlayer.pid ? 'block' : 'none' };
-          return (
-            <React.Fragment key={pid}>
-              <video ref={video} style={style} playsInline muted />
-              <canvas ref={canvas} style={style} />
-            </React.Fragment>
-          );
-        })}
+        {players.map(({ pid, video }) => (
+          <video
+            key={pid}
+            ref={video}
+            style={{ display: pid === activePlayer.pid ? 'block' : 'none' }}
+            playsInline
+            muted
+          />
+        ))}
+        <canvas ref={attachBlur} />
 
         <Spinner loading={activePlayer.loading && !activePlayer.paused} />
 
