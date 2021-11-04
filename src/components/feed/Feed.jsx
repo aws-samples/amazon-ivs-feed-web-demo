@@ -34,10 +34,10 @@ const Feed = ({ toggleMetadata }) => {
       if (init.current) {
         players.forEach((player, i) => {
           const { id, stream } = streams[i];
-          const isStreamActive = id === activeStream.id;
-          player.preload(stream.playbackUrl, isStreamActive);
+          player.instance.load(stream.playbackUrl);
           loadedStreamsMap.set(player.pid, { id, ...stream });
         });
+        players[0].instance.play();
         init.current = false;
         return;
       }
@@ -55,9 +55,13 @@ const Feed = ({ toggleMetadata }) => {
           } else {
             const loadedStreamIds = [...loadedStreamsMap].map(([_, stream]) => stream.id);
             const { id, stream } = streams.find((s) => !loadedStreamIds.includes(s.id));
-            const isStreamActive = id === activeStream.id;
-            player.preload(stream.playbackUrl, isStreamActive);
+            player.instance.load(stream.playbackUrl);
             loadedStreamsMap.set(player.pid, { id, ...stream });
+
+            if (id === activeStream.id) {
+              // preloaded stream is active
+              player.instance.play();
+            }
           }
         });
       }

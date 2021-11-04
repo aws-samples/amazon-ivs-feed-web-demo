@@ -6,15 +6,10 @@ const { isPlayerSupported, create, PlayerState, PlayerEventType } = window.IVSPl
 const usePlayer = (video) => {
   const player = useRef(null);
   const pid = useRef(video.current);
-  const startPlaybackAfterLoad = useRef(false);
 
   const [loading, setLoading] = useState(false);
   const [muted, setMuted] = useState(true);
   const [paused, setPaused] = useState(false);
-
-  const log = (message) => {
-    console.log(`Player ${pid.current}: ${message}`);
-  };
 
   // handle case when autoplay with sound is blocked by browser
   useEffect(() => {
@@ -31,9 +26,6 @@ const usePlayer = (video) => {
         const newState = player.current.getState();
         setLoading(newState !== PLAYING);
         setPaused(player.current.isPaused());
-        if (newState === READY && startPlaybackAfterLoad.current) {
-          player.current.play();
-        }
         console.log(`Player ${pid.current} State - ${newState}`);
       };
 
@@ -61,11 +53,6 @@ const usePlayer = (video) => {
     }
   }, [video]);
 
-  const preload = (playbackUrl, startPlayback = false) => {
-    player.current.load(playbackUrl);
-    startPlaybackAfterLoad.current = startPlayback;
-  };
-
   const toggleMute = () => {
     const muteNext = !player.current.isMuted();
     player.current.setMuted(muteNext);
@@ -89,9 +76,7 @@ const usePlayer = (video) => {
     loading,
     paused,
     muted,
-    preload,
-    video,
-    log
+    video
   };
 };
 
