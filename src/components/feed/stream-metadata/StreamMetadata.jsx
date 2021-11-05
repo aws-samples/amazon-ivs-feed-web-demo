@@ -34,11 +34,12 @@ const StreamMetadata = ({ toggleMetadata }) => {
       }, 1000);
     };
 
-    state === "LIVE" ? startCounter() : pauseCounter();
+    state === 'LIVE' ? startCounter() : pauseCounter();
 
     return () => {
       if (intervalId.current) pauseCounter();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startTime, timeSince]);
 
   const copyText = (url) => {

@@ -42,7 +42,7 @@ canvas {
   }
 }
 
-.btn-pause {
+.btn-play-pause {
   position: absolute;
   left: 0;
   top: 0;
@@ -55,6 +55,33 @@ canvas {
   cursor: pointer;
   background: transparent;
   border: none;
+}
+
+.btn-play {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: var(--color-mid-gray);
+  opacity: 0.7;
+  color: white;
+  border: none;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (hover: hover) {
+  .btn-play:hover {
+    opacity: 0.9;
+    background: var(--color-mid-gray);
+  }
+}
+
+.btn-play:active {
+  opacity: 0.9;
+  background: var(--color-mid-gray);
 }
 
 .player-buttons {
