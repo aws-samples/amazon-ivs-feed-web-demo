@@ -12,6 +12,7 @@
   left: -15px;
   top: -2px;
   z-index: 9;
+  pointer-events: none;
 }
 
 .heart-inner {
