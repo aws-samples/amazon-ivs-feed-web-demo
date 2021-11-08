@@ -3,9 +3,10 @@ import 'context-filter-polyfill';
 
 const { isPlayerSupported, create, PlayerState, PlayerEventType } = window.IVSPlayer;
 
-const usePlayer = (video) => {
+const usePlayer = (id) => {
   const player = useRef(null);
-  const pid = useRef(video.current);
+  const video = useRef();
+  const pid = useRef(id);
 
   const [loading, setLoading] = useState(false);
   const [muted, setMuted] = useState(true);

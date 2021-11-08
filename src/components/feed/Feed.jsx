@@ -12,59 +12,63 @@ import useThrottledCallback from '../hooks/useThrottledCallback';
 import './Feed.css';
 
 const Feed = ({ toggleMetadata }) => {
-  const { activeStream, nextStream, prevStream, gotoNextStream, gotoPrevStream } =
-    useStream();
-  const [v1, v2, v3] = [useRef(1), useRef(2), useRef(3)];
-  const players = [usePlayer(v1), usePlayer(v2), usePlayer(v3)];
-  const loadedStreamsMap = useMemo(() => new Map(), []); // key: Player ID (PID), value: loaded stream
-  const activePlayer =
-    (!!activeStream &&
-      players.find(({ pid }) => loadedStreamsMap.get(pid)?.id === activeStream.id)) ||
-    players[0];
+  const { activeStream, setActiveStream } = useStream();
+  const players = [usePlayer(1), usePlayer(2), usePlayer(3)];
+  const loadedStreamsMap = useMemo(() => new Map(), []); // key: Player ID (PID), value: loaded stream node
 
-  const throttledGotoNextStream = useThrottledCallback(gotoNextStream, 500);
-  const throttledGotoPrevStream = useThrottledCallback(gotoPrevStream, 500);
+  const activePlayer = players.reduce((activePlayer, currentPlayer) => {
+    const loadedStream = loadedStreamsMap.get(currentPlayer.pid);
+    if (loadedStream) {
+      if (loadedStream.data.id === activeStream.data.id) {
+        return currentPlayer;
+      }
+    }
+    return activePlayer;
+  }, players[0]);
 
-  const init = useRef(true);
+  const throttledGotoNextStream = useThrottledCallback(
+    () => setActiveStream(activeStream.next),
+    500
+  );
+  const throttledGotoPrevStream = useThrottledCallback(
+    () => setActiveStream(activeStream.prev),
+    500
+  );
+
   useLayoutEffect(() => {
-    if (activeStream && nextStream && prevStream) {
-      const streams = [activeStream, nextStream, prevStream];
+    if (activeStream) {
+      const streams = [activeStream, activeStream.next, activeStream.prev];
 
-      // init: preload players with initial streams
-      if (init.current) {
-        players.forEach((player, i) => {
-          const { id, stream } = streams[i];
-          player.instance.load(stream.playbackUrl);
-          loadedStreamsMap.set(player.pid, { id, ...stream });
-        });
-        players[0].instance.play();
-        init.current = false;
-        return;
-      }
+      players.forEach((player) => {
+        const loadedStream = loadedStreamsMap.get(player.pid);
+        const isLoaded = (stream) =>
+          loadedStream && loadedStream.data.id === stream.data.id;
 
-      // transition players to the next preloaded state
-      if (loadedStreamsMap.size) {
-        players.forEach((player) => {
-          const { id: loadedStreamId } = loadedStreamsMap.get(player.pid);
-          const isLoaded = (stream) => loadedStreamId === stream.id;
+        if (isLoaded(activeStream)) {
+          player.instance.play();
+        } else if (isLoaded(activeStream.next) || isLoaded(activeStream.prev)) {
+          player.instance.pause();
+        } else {
+          const loadedStreamIds = [...loadedStreamsMap].map(
+            ([_, stream]) => stream.data.id
+          );
+          const streamToPreload = streams.find(
+            (stream) => !loadedStreamIds.includes(stream.data.id)
+          );
+          const {
+            id,
+            stream: { playbackUrl }
+          } = streamToPreload.data;
 
-          if (isLoaded(activeStream)) {
+          player.instance.load(playbackUrl);
+          loadedStreamsMap.set(player.pid, streamToPreload);
+
+          if (id === activeStream.data.id) {
+            // preloaded stream is active
             player.instance.play();
-          } else if (isLoaded(nextStream) || isLoaded(prevStream)) {
-            player.instance.pause();
-          } else {
-            const loadedStreamIds = [...loadedStreamsMap].map(([_, stream]) => stream.id);
-            const { id, stream } = streams.find((s) => !loadedStreamIds.includes(s.id));
-            player.instance.load(stream.playbackUrl);
-            loadedStreamsMap.set(player.pid, { id, ...stream });
-
-            if (id === activeStream.id) {
-              // preloaded stream is active
-              player.instance.play();
-            }
           }
-        });
-      }
+        }
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeStream]);

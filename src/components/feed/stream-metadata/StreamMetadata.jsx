@@ -10,18 +10,19 @@ import Button from '../../common/Button';
 
 const StreamMetadata = ({ toggleMetadata }) => {
   const { activeStream } = useStream();
+  const {
+    id,
+    stream: { startTime, state },
+    metadata: { userAvatar, userName, streamTitle }
+  } = activeStream.data;
 
-  const { startTime, state } = activeStream.stream;
-  const { userAvatar, userName, streamTitle } = activeStream.metadata;
-  const intervalId = useRef(null);
-  const [timeSince, setTimeSince] = useState(getTimeSince(startTime));
   const [showSnackbar, setSnackbar] = useState(false);
-  const currentURL = `${window.location.origin}/${activeStream.id}`;
+  const [timeSince, setTimeSince] = useState(getTimeSince(startTime));
 
-  const isIOS = () => {
-    return navigator.userAgent.match(/ipad|iphone/i);
-  };
+  const currentURL = `${window.location.origin}/${id}`;
+  const isIOS = navigator.userAgent.match(/ipad|iphone/i);
 
+  const intervalId = useRef(null);
   useEffect(() => {
     const pauseCounter = () => {
       clearInterval(intervalId.current);
@@ -43,7 +44,7 @@ const StreamMetadata = ({ toggleMetadata }) => {
   }, [startTime, timeSince]);
 
   const copyText = (url) => {
-    if (isIOS()) {
+    if (isIOS) {
       //copy to clipboard for iOS safari
       let textArea = document.createElement('textArea');
       textArea.value = url;

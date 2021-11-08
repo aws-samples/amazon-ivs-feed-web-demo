@@ -10,7 +10,7 @@ import './App.css';
 const feedJSON = `${process.env.PUBLIC_URL}/feed.json`;
 
 const App = () => {
-  const { setStreams, activeStream, setActiveStream, streams } = useStream();
+  const { streams, activeStream, setStreams, setActiveStreamById } = useStream();
   const [metadataVisible, setMetadataVisible] = useState(true);
   const isMobileView = useRef(false);
   const metadataRef = useRef();
@@ -32,17 +32,22 @@ const App = () => {
     fetchStreams();
   }, [setStreams]);
 
+  // Set the active stream to the matching stream ID in the URL params, if one exists
   useEffect(() => {
-    if (streams && streams.length > 0 && activeStream.id !== params.id) {
-      const id =
-        isNaN(parseInt(params.id)) || params.id > streams.length - 1 ? 0 : params.id;
-      setActiveStream(id);
+    const activeStreamId = activeStream?.data.id;
+    const paramsStreamId = parseInt(params.id);
+    if (streams && streams.size && activeStreamId !== paramsStreamId) {
+      const streamIds = streams.map((s) => s.id);
+      const id = streamIds.includes(paramsStreamId) ? paramsStreamId : 0;
+      setActiveStreamById(id);
     }
   }, [streams]);
 
+  // Update the page URL for the active stream
   useEffect(() => {
-    if (activeStream && activeStream.id !== params.id) {
-      const obj = { Page: activeStream.id, Url: activeStream.id };
+    const activeStreamId = activeStream?.data.id;
+    if (activeStream && activeStreamId !== params.id) {
+      const obj = { Page: activeStreamId, Url: activeStreamId };
       window.history.pushState(obj, obj.Page, obj.Url);
     }
   }, [activeStream]);
