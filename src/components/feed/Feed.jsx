@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo, useLayoutEffect, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 
 import Spinner from '../common/Spinner';
 import Button from '../common/Button';
@@ -9,66 +9,73 @@ import useStream from '../../contexts/Stream/useStream';
 import usePlayer from '../hooks/usePlayer';
 import useThrottledCallback from '../hooks/useThrottledCallback';
 
+import { sort } from './utils';
+
 import './Feed.css';
+
+const PLAYER_NAMES = Object.freeze(['PREV', 'ACTIVE', 'NEXT']);
 
 const Feed = ({ toggleMetadata }) => {
   const { activeStream, setActiveStream } = useStream();
-  const players = [usePlayer(1), usePlayer(2), usePlayer(3)];
-  const loadedStreamsMap = useMemo(() => new Map(), []); // key: Player ID (PID), value: loaded stream node
+  const players = [usePlayer(), usePlayer(), usePlayer()];
+  const actionTriggered = useRef(null);
 
-  const activePlayer = players.reduce((activePlayer, currentPlayer) => {
-    const loadedStream = loadedStreamsMap.get(currentPlayer.pid);
-    if (loadedStream) {
-      if (loadedStream.data.id === activeStream.data.id) {
-        return currentPlayer;
-      }
-    }
-    return activePlayer;
-  }, players[0]);
+  sort(players, ['name'], PLAYER_NAMES);
+  const [prevPlayer, activePlayer, nextPlayer] = players;
 
-  const throttledGotoNextStream = useThrottledCallback(
-    () => setActiveStream(activeStream.next),
-    500
-  );
-  const throttledGotoPrevStream = useThrottledCallback(
-    () => setActiveStream(activeStream.prev),
-    500
-  );
+  const throttledGotoNextStream = useThrottledCallback(() => {
+    setActiveStream(activeStream.next);
+    actionTriggered.current = 'next';
+  }, 500);
 
-  useLayoutEffect(() => {
+  const throttledGotoPrevStream = useThrottledCallback(() => {
+    setActiveStream(activeStream.prev);
+    actionTriggered.current = 'prev';
+  }, 500);
+
+  useEffect(() => {
     if (activeStream) {
-      const streams = [activeStream, activeStream.next, activeStream.prev];
+      const streams = [activeStream.prev, activeStream, activeStream.next];
+      const playbackUrls = streams.map(({ data }) => data.stream.playbackUrl);
+      const [prevPlaybackUrl, activePlaybackUrl, nextPlaybackUrl] = playbackUrls;
+      activePlayer.togglePlayPause('pause');
 
-      players.forEach((player) => {
-        const loadedStream = loadedStreamsMap.get(player.pid);
-        const isLoaded = (stream) =>
-          loadedStream && loadedStream.data.id === stream.data.id;
-
-        if (isLoaded(activeStream)) {
-          player.instance.play();
-        } else if (isLoaded(activeStream.next) || isLoaded(activeStream.prev)) {
-          player.instance.pause();
-        } else {
-          const loadedStreamIds = [...loadedStreamsMap].map(
-            ([_, stream]) => stream.data.id
-          );
-          const streamToPreload = streams.find(
-            (stream) => !loadedStreamIds.includes(stream.data.id)
-          );
-          const {
-            id,
-            stream: { playbackUrl }
-          } = streamToPreload.data;
-
-          player.instance.load(playbackUrl);
-          loadedStreamsMap.set(player.pid, streamToPreload);
-
-          if (id === activeStream.data.id) {
-            // preloaded stream is active
-            player.instance.play();
-          }
+      switch (actionTriggered.current) {
+        case 'next': {
+          /**                   Prev   Active  Next
+           * Initial Players: [ P1,    P2,     P3 ]
+           * Final Players:   [ P2,    P3,     newP1 ]
+           */
+          nextPlayer.togglePlayPause('play');
+          const newNextPlayer = players.shift(); // [P2, P3]
+          newNextPlayer.load(nextPlaybackUrl); // P1.load(url) -> newP1
+          players.push(newNextPlayer); // [P2, P3, newP1]
+          break;
         }
-      });
+        case 'prev': {
+          /**                   Prev     Active  Next
+           * Initial Players: [ P1,      P2,     P3 ]
+           * Final PLayers:   [ newP3,   P1,     P2 ]
+           */
+          prevPlayer.togglePlayPause('play');
+          const newPrevPlayer = players.pop(); // [P1, P2]
+          newPrevPlayer.load(prevPlaybackUrl); // P3.load(url) -> newP3
+          players.unshift(newPrevPlayer); // [newP3, P1, P2]
+          break;
+        }
+        default: {
+          /**                   Prev     Active  Next
+           * Initial Players: [ P1,      P2,     P3 ]
+           * Final Players:   [ newP1,   newP2,  newP3 ]
+           */
+          prevPlayer.load(prevPlaybackUrl); // P1.load(url) -> newP1
+          activePlayer.load(activePlaybackUrl, true); // P2.load(url) -> newP2
+          nextPlayer.load(nextPlaybackUrl); // P3.load(url) -> newP3
+        }
+      }
+
+      PLAYER_NAMES.forEach((name, i) => players[i].setName(name)); // Rename players according to their new positions
+      actionTriggered.current = null;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeStream]);
@@ -85,22 +92,25 @@ const Feed = ({ toggleMetadata }) => {
   const blurredPlayerId = useRef(null);
   const attachBlur = useCallback(
     (canvas) => {
-      if (activePlayer && canvas) {
-        blurredPlayerId.current = activePlayer.pid;
-        const ctx = canvas.getContext('2d');
-        ctx.filter = 'blur(3px)';
+      if (activeStream && canvas) {
+        const player = players.find((p) => p.pid === canvas.id);
+        console.log('attachBlur', player);
 
-        const draw = (bid) => {
-          if (blurredPlayerId.current !== bid) return;
+        // blurredPlayerId.current = activePlayer.pid;
+        // const ctx = canvas.getContext('2d');
+        // ctx.filter = 'blur(3px)';
 
-          ctx.drawImage(activePlayer.video.current, 0, 0, canvas.width, canvas.height);
-          requestAnimationFrame(() => draw(bid));
-        };
-        requestAnimationFrame(() => draw(blurredPlayerId.current));
+        // const draw = (bid) => {
+        //   if (blurredPlayerId.current !== bid) return;
+
+        //   ctx.drawImage(activePlayer.video.current, 0, 0, canvas.width, canvas.height);
+        //   requestAnimationFrame(() => draw(bid));
+        // };
+        // requestAnimationFrame(() => draw(blurredPlayerId.current));
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [activePlayer.pid]
+    [activeStream]
   );
 
   if (!window.IVSPlayer.isPlayerSupported) {
@@ -109,46 +119,52 @@ const Feed = ({ toggleMetadata }) => {
   }
 
   return (
-    <div className="feed-content">
-      <div className="player-buttons">
-        <Like />
-        <Button onClick={activePlayer.toggleMute}>
-          {activePlayer.muted ? 'VolumeOff' : 'VolumeUp'}
-        </Button>
+    activePlayer && (
+      <div className="feed-content">
+        <div className="player-buttons">
+          <Like />
+          <Button onClick={activePlayer.toggleMute}>
+            {activePlayer.muted ? 'VolumeOff' : 'VolumeUp'}
+          </Button>
 
-        <hr className="divider" />
-        <Button onClick={throttledGotoPrevStream}>ChevronUp</Button>
-        <Button onClick={throttledGotoNextStream}>ChevronDown</Button>
-
-        <span className="metadata-toggle">
           <hr className="divider" />
-          <Button onClick={() => toggleMetadata()}>Description</Button>
-        </span>
+          <Button onClick={throttledGotoPrevStream}>ChevronUp</Button>
+          <Button onClick={throttledGotoNextStream}>ChevronDown</Button>
+
+          <span className="metadata-toggle">
+            <hr className="divider" />
+            <Button onClick={() => toggleMetadata()}>Description</Button>
+          </span>
+        </div>
+
+        <div className="player-video">
+          {players.map(({ video, pid, name }) => (
+            <React.Fragment key={`player-${pid}`}>
+              <video
+                id={`${name}-player}`}
+                style={{ display: name === 'ACTIVE' ? 'block' : 'none' }} // temporary
+                ref={video}
+                playsInline
+                muted
+              />
+              <canvas id={pid} ref={attachBlur} />
+            </React.Fragment>
+          ))}
+
+          <Spinner loading={activePlayer.loading && !activePlayer.paused} />
+
+          <button
+            className="btn-play-pause"
+            onClick={() => activePlayer.togglePlayPause()}
+            tabIndex={1}
+          >
+            {!activePlayer.loading && activePlayer.paused && (
+              <Play className="btn-play" />
+            )}
+          </button>
+        </div>
       </div>
-
-      <div className="player-video">
-        {players.map(({ pid, video }) => (
-          <video
-            key={pid}
-            ref={video}
-            style={{ display: pid === activePlayer.pid ? 'block' : 'none' }}
-            playsInline
-            muted
-          />
-        ))}
-        <canvas ref={attachBlur} />
-
-        <Spinner loading={activePlayer.loading && !activePlayer.paused} />
-
-        <button
-          className="btn-play-pause"
-          onClick={activePlayer.togglePlayPause}
-          tabIndex={1}
-        >
-          {!activePlayer.loading && activePlayer.paused && <Play className="btn-play" />}
-        </button>
-      </div>
-    </div>
+    )
   );
 };
 

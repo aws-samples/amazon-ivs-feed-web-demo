@@ -57,20 +57,16 @@ const hexToRgb = (hex) => {
   } else return '';
 };
 
-const sort = (items, properties, sortOrder) => {
-  const newItems = [...items];
+const sort = (items, by, sortOrder) => {
   if (sortOrder) {
-    newItems.sort((a, b) => {
-      if (properties && properties.length) {
-        a = properties.reduce((newA, p) => newA[p], a);
-        b = properties.reduce((newB, p) => newB[p], b);
+    items.sort((a, b) => {
+      if (by) {
+        a = by.reduce((newA, p) => newA[p], a);
+        b = by.reduce((newB, p) => newB[p], b);
       }
       return sortOrder.indexOf(a) - sortOrder.indexOf(b);
     });
-  } else {
-    newItems.sort();
-  }
-  return newItems;
+  } else items.sort();
 };
 
 export { getRandomColor, getTimeSince, hexToRgb, sort };
