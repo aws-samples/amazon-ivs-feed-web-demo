@@ -15,8 +15,8 @@ const actionTypes = {
 const reducer = (state, action) => {
   switch (action.type) {
     case actionTypes.SET_STREAMS: {
-      const { streams } = action;
-      return { streams, activeStream: streams.head };
+      const { streams, activeStream } = action;
+      return { streams, activeStream };
     }
     case actionTypes.SET_ACTIVE_STREAM: {
       const { activeStream } = action;
@@ -32,11 +32,10 @@ const StreamProvider = ({ children }) => {
 
   const compareStreams = (s0, s1) => s0.id === s1.id;
 
-  const setStreams = useCallback((streams) => {
-    dispatch({
-      type: actionTypes.SET_STREAMS,
-      streams: new CircularLinkedList(streams, compareStreams)
-    });
+  const setStreams = useCallback((streamsData, initialStreamId) => {
+    const streams = new CircularLinkedList(streamsData, compareStreams);
+    const activeStream = streams.get({ id: initialStreamId }) || streams.head;
+    dispatch({ type: actionTypes.SET_STREAMS, streams, activeStream });
   }, []);
 
   const setActiveStream = useCallback((streamNode) => {

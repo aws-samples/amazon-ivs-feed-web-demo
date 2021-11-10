@@ -10,7 +10,7 @@ import './App.css';
 const feedJSON = `${process.env.PUBLIC_URL}/feed.json`;
 
 const App = () => {
-  const { streams, activeStream, setStreams, setActiveStreamById } = useStream();
+  const { activeStream, setStreams } = useStream();
   const [metadataVisible, setMetadataVisible] = useState(true);
   const isMobileView = useRef(false);
   const metadataRef = useRef();
@@ -21,8 +21,11 @@ const App = () => {
       try {
         const response = await fetch(feedJSON);
         if (response.ok) {
-          const data = await response.json();
-          setStreams(data.streams);
+          const { streams } = await response.json();
+          const paramsStreamId = parseInt(params.id);
+          const streamIds = streams.map((s) => s.id);
+          const initialStreamId = streamIds.includes(paramsStreamId) ? paramsStreamId : 0;
+          setStreams(streams, initialStreamId);
         } else throw new Error(response.statusText);
       } catch (e) {
         console.error(e);
@@ -31,17 +34,6 @@ const App = () => {
 
     fetchStreams();
   }, [setStreams]);
-
-  // Set the active stream to the matching stream ID in the URL params, if one exists
-  useEffect(() => {
-    const activeStreamId = activeStream?.data.id;
-    const paramsStreamId = parseInt(params.id);
-    if (streams && streams.size && activeStreamId !== paramsStreamId) {
-      const streamIds = streams.map((s) => s.id);
-      const id = streamIds.includes(paramsStreamId) ? paramsStreamId : 0;
-      setActiveStreamById(id);
-    }
-  }, [streams]);
 
   // Update the page URL for the active stream
   useEffect(() => {
