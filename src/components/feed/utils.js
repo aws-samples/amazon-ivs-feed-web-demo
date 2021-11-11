@@ -57,16 +57,12 @@ const hexToRgb = (hex) => {
   } else return '';
 };
 
-const sort = (items, by, sortOrder) => {
-  if (sortOrder) {
-    items.sort((a, b) => {
-      if (by) {
-        a = by.reduce((newA, p) => newA[p], a);
-        b = by.reduce((newB, p) => newB[p], b);
-      }
-      return sortOrder.indexOf(a) - sortOrder.indexOf(b);
-    });
-  } else items.sort();
+const shiftObjectValues = (obj, dir) => {
+  const keys = Object.keys(obj);
+  const vals = Object.values(obj);
+  if (dir === 'up' || dir === 'left') vals.push(vals.shift());
+  if (dir === 'down' || dir === 'right') vals.unshift(vals.pop());
+  vals.forEach((v, i) => (obj[keys[i]] = v));
 };
 
-export { getRandomColor, getTimeSince, hexToRgb, sort };
+export { getRandomColor, getTimeSince, hexToRgb, shiftObjectValues };

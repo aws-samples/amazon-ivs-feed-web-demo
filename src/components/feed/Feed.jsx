@@ -1,81 +1,78 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useMemo } from 'react';
 
-import Spinner from '../common/Spinner';
-import Button from '../common/Button';
-import Like from './like';
-import { Play } from '../../assets/icons';
-
+import Player from './Player';
 import useStream from '../../contexts/Stream/useStream';
 import usePlayer from '../hooks/usePlayer';
-import useThrottledCallback from '../hooks/useThrottledCallback';
 
-import { sort } from './utils';
+import { shiftObjectValues } from './utils';
 
 import './Feed.css';
 
-const PLAYER_NAMES = Object.freeze(['PREV', 'ACTIVE', 'NEXT']);
+const PLAYER_TYPES = Object.freeze(['ACTIVE', 'NEXT', 'PREV']);
+
+const initializePlayersMap = (players) =>
+  players.reduce(
+    (playersMap, { pid }, i) => ({
+      ...playersMap,
+      [pid]: PLAYER_TYPES[i]
+    }),
+    {}
+  );
 
 const Feed = ({ toggleMetadata }) => {
-  const { activeStream, setActiveStream } = useStream();
-  const players = [usePlayer(), usePlayer(), usePlayer()];
-  const actionTriggered = useRef(null);
-
-  sort(players, ['name'], PLAYER_NAMES);
-  const [prevPlayer, activePlayer, nextPlayer] = players;
-
-  const throttledGotoNextStream = useThrottledCallback(() => {
-    setActiveStream(activeStream.next);
-    actionTriggered.current = 'next';
-  }, 500);
-
-  const throttledGotoPrevStream = useThrottledCallback(() => {
-    setActiveStream(activeStream.prev);
-    actionTriggered.current = 'prev';
-  }, 500);
+  const {
+    activeStream,
+    actionTriggered,
+    throttledGotoNextStream,
+    throttledGotoPrevStream
+  } = useStream();
+  const players = [usePlayer(1), usePlayer(2), usePlayer(3)];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const playersMap = useMemo(() => initializePlayersMap(players), []); // { key: Player PID, value: PLAYER_TYPE }
 
   useEffect(() => {
     if (activeStream) {
-      const streams = [activeStream.prev, activeStream, activeStream.next];
-      const playbackUrls = streams.map(({ data }) => data.stream.playbackUrl);
-      const [prevPlaybackUrl, activePlaybackUrl, nextPlaybackUrl] = playbackUrls;
-      activePlayer.togglePlayPause('pause');
+      // Streams
+      const streams = [activeStream, activeStream.next, activeStream.prev];
+      const [activePlaybackUrl, nextPlaybackUrl, prevPlaybackUrl] = streams.map(
+        ({ data }) => data.stream.playbackUrl
+      );
+      // Players
+      const [activePlayer, nextPlayer, prevPlayer] = PLAYER_TYPES.map((type) =>
+        players.find((player) => playersMap[player.pid] === type)
+      );
 
-      switch (actionTriggered.current) {
+      activePlayer.pause(); // Pause the currently active (and playing) player
+
+      switch (actionTriggered) {
         case 'next': {
-          /**                   Prev   Active  Next
-           * Initial Players: [ P1,    P2,     P3 ]
-           * Final Players:   [ P2,    P3,     newP1 ]
+          /**
+           * Ex.        P1      P2      P3
+           * Initial: [ Active  Next    Prev ]
+           * Final:   [ Prev    Active  newNext ]
            */
-          nextPlayer.togglePlayPause('play');
-          const newNextPlayer = players.shift(); // [P2, P3]
-          newNextPlayer.load(nextPlaybackUrl); // P1.load(url) -> newP1
-          players.push(newNextPlayer); // [P2, P3, newP1]
+          nextPlayer.play();
+          prevPlayer.load(nextPlaybackUrl);
+          shiftObjectValues(playersMap, 'down');
           break;
         }
         case 'prev': {
-          /**                   Prev     Active  Next
-           * Initial Players: [ P1,      P2,     P3 ]
-           * Final PLayers:   [ newP3,   P1,     P2 ]
+          /**
+           * Ex.        P1       P2       P3
+           * Initial: [ Active   Next     Prev ]
+           * Final:   [ Next     newPrev  Active ]
            */
-          prevPlayer.togglePlayPause('play');
-          const newPrevPlayer = players.pop(); // [P1, P2]
-          newPrevPlayer.load(prevPlaybackUrl); // P3.load(url) -> newP3
-          players.unshift(newPrevPlayer); // [newP3, P1, P2]
+          prevPlayer.play();
+          nextPlayer.load(prevPlaybackUrl);
+          shiftObjectValues(playersMap, 'up');
           break;
         }
         default: {
-          /**                   Prev     Active  Next
-           * Initial Players: [ P1,      P2,     P3 ]
-           * Final Players:   [ newP1,   newP2,  newP3 ]
-           */
-          prevPlayer.load(prevPlaybackUrl); // P1.load(url) -> newP1
-          activePlayer.load(activePlaybackUrl, true); // P2.load(url) -> newP2
-          nextPlayer.load(nextPlaybackUrl); // P3.load(url) -> newP3
+          activePlayer.load(activePlaybackUrl, true);
+          nextPlayer.load(nextPlaybackUrl);
+          prevPlayer.load(prevPlaybackUrl);
         }
       }
-
-      PLAYER_NAMES.forEach((name, i) => players[i].setName(name)); // Rename players according to their new positions
-      actionTriggered.current = null;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeStream]);
@@ -89,82 +86,22 @@ const Feed = ({ toggleMetadata }) => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [throttledGotoNextStream, throttledGotoPrevStream]);
 
-  const blurredPlayerId = useRef(null);
-  const attachBlur = useCallback(
-    (canvas) => {
-      if (activeStream && canvas) {
-        const player = players.find((p) => p.pid === canvas.id);
-        console.log('attachBlur', player);
-
-        // blurredPlayerId.current = activePlayer.pid;
-        // const ctx = canvas.getContext('2d');
-        // ctx.filter = 'blur(3px)';
-
-        // const draw = (bid) => {
-        //   if (blurredPlayerId.current !== bid) return;
-
-        //   ctx.drawImage(activePlayer.video.current, 0, 0, canvas.width, canvas.height);
-        //   requestAnimationFrame(() => draw(bid));
-        // };
-        // requestAnimationFrame(() => draw(blurredPlayerId.current));
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [activeStream]
-  );
-
   if (!window.IVSPlayer.isPlayerSupported) {
     console.warn('The current browser does not support the Amazon IVS player.');
     return null;
   }
 
   return (
-    activePlayer && (
-      <div className="feed-content">
-        <div className="player-buttons">
-          <Like />
-          <Button onClick={activePlayer.toggleMute}>
-            {activePlayer.muted ? 'VolumeOff' : 'VolumeUp'}
-          </Button>
-
-          <hr className="divider" />
-          <Button onClick={throttledGotoPrevStream}>ChevronUp</Button>
-          <Button onClick={throttledGotoNextStream}>ChevronDown</Button>
-
-          <span className="metadata-toggle">
-            <hr className="divider" />
-            <Button onClick={() => toggleMetadata()}>Description</Button>
-          </span>
-        </div>
-
-        <div className="player-video">
-          {players.map(({ video, pid, name }) => (
-            <React.Fragment key={`player-${pid}`}>
-              <video
-                id={`${name}-player}`}
-                style={{ display: name === 'ACTIVE' ? 'block' : 'none' }} // temporary
-                ref={video}
-                playsInline
-                muted
-              />
-              <canvas id={pid} ref={attachBlur} />
-            </React.Fragment>
-          ))}
-
-          <Spinner loading={activePlayer.loading && !activePlayer.paused} />
-
-          <button
-            className="btn-play-pause"
-            onClick={() => activePlayer.togglePlayPause()}
-            tabIndex={1}
-          >
-            {!activePlayer.loading && activePlayer.paused && (
-              <Play className="btn-play" />
-            )}
-          </button>
-        </div>
-      </div>
-    )
+    <div className="feed-content">
+      {players.map((player) => (
+        <Player
+          key={`player-${player.pid}`}
+          playerData={player}
+          isActive={playersMap[player.pid] === 'ACTIVE'}
+          toggleMetadata={toggleMetadata}
+        />
+      ))}
+    </div>
   );
 };
 

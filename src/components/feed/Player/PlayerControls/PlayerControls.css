@@ -1,0 +1,30 @@
+.player-buttons {
+  position: absolute;
+  right: 0;
+  margin-right: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  row-gap: 1rem;
+  z-index: 100;
+}
+
+.divider {
+  width: 44px;
+  height: 2px;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.metadata-toggle {
+  display: none;
+}
+
+@media (max-width: 839px) {
+  .metadata-toggle {
+    display: flex;
+    row-gap: 1rem;
+    flex-direction: column;
+  }
+}

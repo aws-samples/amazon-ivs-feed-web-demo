@@ -1,10 +1,12 @@
 import React, { useCallback, useMemo, useReducer } from 'react';
 import StreamContext from './context';
 import CircularLinkedList from '../../utils/CircularLinkedList';
+import useThrottledCallback from '../../components/hooks/useThrottledCallback';
 
 const initialState = {
   streams: null, // Circular doubly linked list of stream nodes
-  activeStream: null // Reference to currently active stream node
+  activeStream: null, // Reference to currently active stream node
+  actionTriggered: null // The type of action triggered to change the streams ('next', 'prev' or 'null' for anything else)
 };
 
 const actionTypes = {
@@ -19,8 +21,8 @@ const reducer = (state, action) => {
       return { streams, activeStream };
     }
     case actionTypes.SET_ACTIVE_STREAM: {
-      const { activeStream } = action;
-      return { ...state, activeStream };
+      const { activeStream, actionTriggered } = action;
+      return { ...state, activeStream, actionTriggered };
     }
     default:
       throw new Error('Unexpected action type');
@@ -38,31 +40,31 @@ const StreamProvider = ({ children }) => {
     dispatch({ type: actionTypes.SET_STREAMS, streams, activeStream });
   }, []);
 
-  const setActiveStream = useCallback((streamNode) => {
+  const setActiveStream = useCallback((streamNode, actionTriggered = null) => {
     dispatch({
       type: actionTypes.SET_ACTIVE_STREAM,
-      activeStream: streamNode
+      activeStream: streamNode,
+      actionTriggered: actionTriggered
     });
   }, []);
 
-  const setActiveStreamById = useCallback(
-    (streamId) => {
-      dispatch({
-        type: actionTypes.SET_ACTIVE_STREAM,
-        activeStream: state.streams.get({ id: streamId })
-      });
-    },
-    [state.streams]
-  );
+  const throttledGotoNextStream = useThrottledCallback(() => {
+    setActiveStream(state.activeStream.next, 'next');
+  }, 500);
+
+  const throttledGotoPrevStream = useThrottledCallback(() => {
+    setActiveStream(state.activeStream.prev, 'prev');
+  }, 500);
 
   const value = useMemo(
     () => ({
       ...state,
       setStreams,
       setActiveStream,
-      setActiveStreamById
+      throttledGotoNextStream,
+      throttledGotoPrevStream
     }),
-    [state, setStreams, setActiveStream, setActiveStreamById]
+    [state, setStreams, setActiveStream, throttledGotoNextStream, throttledGotoPrevStream]
   );
 
   return <StreamContext.Provider value={value}>{children}</StreamContext.Provider>;

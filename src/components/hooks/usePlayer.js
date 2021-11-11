@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import 'context-filter-polyfill';
 
 const {
@@ -11,15 +10,14 @@ const {
 const { ENDED, PLAYING, READY, BUFFERING } = PlayerState;
 const { ERROR } = PlayerEventType;
 
-const usePlayer = () => {
+const usePlayer = (id) => {
   // Refs
   const player = useRef(null);
   const video = useRef();
-  const pid = useRef(uuidv4());
-  const name = useRef('');
+  const pid = useRef(id);
 
   // State
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [muted, setMuted] = useState(true);
   const [paused, setPaused] = useState(false);
 
@@ -27,13 +25,12 @@ const usePlayer = () => {
   const onStateChange = useCallback(() => {
     const newState = player.current.getState();
     setLoading(newState !== PLAYING);
-    setPaused(player.current.isPaused());
-    console.log(`${name.current} Player State - ${newState}`);
+    console.log(`Player ${pid.current} State - ${newState}`);
   }, []);
 
   // Generic PlayerEventType event listener
   const onError = useCallback((err) => {
-    console.warn(`${name.current} Player Event - ERROR:`, err, player.current);
+    console.warn(`Player ${pid.current} Event - ERROR:`, err, player.current);
   }, []);
 
   const destroy = useCallback(() => {
@@ -76,51 +73,47 @@ const usePlayer = () => {
   }, [destroy, onError, onStateChange]);
 
   const load = useCallback(
-    (playbackUrl, startPlaybackAfterLoad = false) => {
-      if (player.current.core.isLoaded) {
-        create();
-      }
+    (playbackUrl, playAfterLoad) => {
+      if (!player.current) return;
+
+      if (player.current.core.isLoaded) create();
       player.current.load(playbackUrl);
-      if (startPlaybackAfterLoad) togglePlayPause(true);
+
+      if (playAfterLoad) play();
     },
     [create]
   );
 
   const toggleMute = () => {
     if (!player.current) return;
+
     const muteNext = !player.current.isMuted();
     player.current.setMuted(muteNext);
     setMuted(muteNext);
   };
 
-  const togglePlayPause = (state) => {
+  const play = () => {
     if (!player.current) return;
 
-    switch (state) {
-      case 'play': {
-        player.current.play();
-        break;
-      }
-      case 'pause': {
-        player.current.pause();
-        break;
-      }
-      default: {
-        if (player.current.isPaused()) {
-          player.current.play();
-        } else {
-          player.current.pause();
-        }
-      }
+    if (player.current.isPaused()) {
+      player.current.play();
+      setPaused(false);
     }
-
-    setPaused(player.current.isPaused());
   };
 
-  const setName = (newName) => {
-    if (newName && newName !== name.current) {
-      name.current = newName;
+  const pause = () => {
+    if (!player.current) return;
+
+    if (!player.current.isPaused()) {
+      player.current.pause();
+      setPaused(true);
     }
+  };
+
+  const togglePlayPause = () => {
+    if (!player.current) return;
+
+    player.current.isPaused() ? play() : pause();
   };
 
   // Initialization
@@ -137,17 +130,17 @@ const usePlayer = () => {
 
   return {
     instance: player.current,
-    name: name.current,
     pid: pid.current,
     togglePlayPause,
     toggleMute,
     destroy,
     loading,
-    setName,
     paused,
     muted,
     video,
-    load
+    load,
+    play,
+    pause
   };
 };
 

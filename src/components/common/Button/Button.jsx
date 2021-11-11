@@ -15,7 +15,7 @@ const Button = ({ children, onClick, ...otherProps }) => {
 
   return (
     <button className="button" onClick={!!onClick && clickHandler} {...otherProps}>
-      {Array.isArray(Icon) ? Icon : <Icon />}
+      {typeof Icon === 'string' ? `${Icon} ` : <Icon />}
     </button>
   );
 };
