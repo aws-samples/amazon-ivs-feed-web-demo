@@ -1,13 +1,26 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { getTimeSince } from '../utils';
+import { Copy } from '../../../assets/icons';
+
+import useStream from '../../../contexts/Stream/useStream';
+import Snackbar from '../snackbar/Snackbar';
 
 import './StreamMetadata.css';
+import Button from '../../common/Button';
 
-const StreamMetadata = (props) => {
-  const { active, startTime, state, title, userAvatar, userName } = props;
+const StreamMetadata = ({ toggleMetadata }) => {
+  const { activeStream } = useStream();
 
-  const [timeSince, setTimeSince] = useState(getTimeSince(startTime));
+  const { startTime, state } = activeStream.stream;
+  const { userAvatar, userName, streamTitle } = activeStream.metadata;
   const intervalId = useRef(null);
+  const [timeSince, setTimeSince] = useState(getTimeSince(startTime));
+  const [showSnackbar, setSnackbar] = useState(false);
+  const currentURL = `${window.location.origin}/${activeStream.id}`;
+
+  const isIOS = () => {
+    return navigator.userAgent.match(/ipad|iphone/i);
+  };
 
   useEffect(() => {
     const pauseCounter = () => {
@@ -21,32 +34,65 @@ const StreamMetadata = (props) => {
       }, 1000);
     };
 
-    active ? startCounter() : pauseCounter();
+    state === 'LIVE' ? startCounter() : pauseCounter();
 
     return () => {
       if (intervalId.current) pauseCounter();
     };
-  }, [active, startTime]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startTime, timeSince]);
 
+  const copyText = (url) => {
+    if (isIOS()) {
+      //copy to clipboard for iOS safari
+      let textArea = document.createElement('textArea');
+      textArea.value = url;
+      textArea.readOnly = true;
+      document.body.appendChild(textArea);
+
+      let range = document.createRange();
+      range.selectNodeContents(textArea);
+      let selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      textArea.setSelectionRange(0, 999999);
+
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+    } else {
+      navigator.clipboard.writeText(url);
+    }
+    setSnackbar(true);
+    setTimeout(() => {
+      setSnackbar(false);
+    }, 2000);
+  };
   return (
-    <div className="stream-meta">
-      <h3 className="stream-meta-title">{title}</h3>
-
+    <div className="metadata-content">
+      <div className="stream-meta-close">
+        <Button onClick={() => toggleMetadata()}>Cross</Button>
+      </div>
       <div className="stream-meta-details">
-        <img
-          className="stream-meta-avatar"
-          src={userAvatar}
-          alt={`${userName} avatar`}
-        />
+        <img className="stream-meta-avatar" src={userAvatar} alt={`${userName} avatar`} />
 
         <div className="stream-meta-text">
           <p className="stream-meta-username">{userName}</p>
 
-          <p className="stream-meta-state">
-            <span>{state}</span> for {timeSince}
-          </p>
+          <span className="stream-meta-state">{`${state} for ${timeSince}`}</span>
         </div>
       </div>
+      <div className="stream-meta-title">{streamTitle}</div>
+
+      <div className="stream-meta-share">
+        Share this live stream
+        <div className="stream-meta-sharelink">
+          {currentURL}
+          <button onClick={() => copyText(currentURL)}>
+            <Copy />
+          </button>
+        </div>
+      </div>
+      <Snackbar showSnackbar={showSnackbar} text="Copied!" />
     </div>
   );
 };

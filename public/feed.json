@@ -5,14 +5,14 @@
       "stream": {
         "channelArn": "arn:aws:ivs:us-west-2:XXXXXXXXXXXX:channel/XXXXXXXXXXXX",
         "health": "HEALTHY",
-        "playbackUrl": "https://fcc3ddae59ed.us-west-2.playback.live-video.net/api/video/v1/us-west-2.893648527354.channel.DmumNckWFTqz.m3u8",
-        "startTime": "2021-08-01T10:17:53Z",
+        "playbackUrl": "https://fcc3ddae59ed.us-west-2.playback.live-video.net/api/video/v1/us-west-2.893648527354.channel.YtnrVcQbttF0.m3u8",
+        "startTime": "2021-06-17T23:17:53Z",
         "state": "LIVE",
         "viewerCount": 1
       },
       "metadata": {
-        "streamTitle": "My cool live stream",
-        "userAvatar": "https://d39ii5l128t5ul.cloudfront.net/assets/animals_rounded/hedgehog.png",
+        "streamTitle": "My portrait live stream from Seattle, WA",
+        "userAvatar": "https://d39ii5l128t5ul.cloudfront.net/assets/animals_square/hedgehog.png",
         "userName": "Harry Hedgehog",
         "userColors": {
           "primary": "#3E9963",
@@ -25,14 +25,14 @@
       "stream": {
         "channelArn": "arn:aws:ivs:us-west-2:XXXXXXXXXXXX:channel/XXXXXXXXXXXX",
         "health": "HEALTHY",
-        "playbackUrl": "https://4c62a87c1810.us-west-2.playback.live-video.net/api/video/v1/us-west-2.049054135175.channel.iNMK0w9JnUkC.m3u8",
-        "startTime": "2021-08-01T10:17:53Z",
+        "playbackUrl": "https://fcc3ddae59ed.us-west-2.playback.live-video.net/api/video/v1/us-west-2.893648527354.channel.DmumNckWFTqz.m3u8",
+        "startTime": "2021-06-17T22:10:51Z",
         "state": "LIVE",
         "viewerCount": 1
       },
       "metadata": {
-        "streamTitle": "Welcome to my cool stream",
-        "userAvatar": "https://d39ii5l128t5ul.cloudfront.net/assets/animals_rounded/giraffe.png",
+        "streamTitle": "My landscape live stream from Seattle, WA",
+        "userAvatar": "https://d39ii5l128t5ul.cloudfront.net/assets/animals_square/giraffe.png",
         "userName": "Gene Giraffe",
         "userColors": {
           "primary": "#545B60",
@@ -45,15 +45,75 @@
       "stream": {
         "channelArn": "arn:aws:ivs:us-west-2:XXXXXXXXXXXX:channel/XXXXXXXXXXXX",
         "health": "HEALTHY",
-        "playbackUrl": "https://4c62a87c1810.us-west-2.playback.live-video.net/api/video/v1/us-west-2.049054135175.channel.QidZjoGOhfDp.m3u8",
-        "startTime": "2021-08-01T10:17:53Z",
+        "playbackUrl": "https://4c62a87c1810.us-west-2.playback.live-video.net/api/video/v1/us-west-2.049054135175.channel.LaSuL3bHBRR7.m3u8",
+        "startTime": "2021-06-17T22:05:13Z",
         "state": "LIVE",
         "viewerCount": 1
       },
       "metadata": {
-        "streamTitle": "What a hoot!",
-        "userAvatar": "https://d39ii5l128t5ul.cloudfront.net/assets/animals_rounded/bird2.png",
+        "streamTitle": "Planting trees",
+        "userAvatar": "https://d39ii5l128t5ul.cloudfront.net/assets/animals_square/bird2.png",
         "userName": "Owen Owl",
+        "userColors": {
+          "primary": "#FFB660",
+          "secondary": "#0075FF"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "stream": {
+        "channelArn": "arn:aws:ivs:us-west-2:XXXXXXXXXXXX:channel/XXXXXXXXXXXX",
+        "health": "HEALTHY",
+        "playbackUrl": "https://4c62a87c1810.us-west-2.playback.live-video.net/api/video/v1/us-west-2.049054135175.channel.WP4bWqiALo67.m3u8",
+        "startTime": "2021-06-17T22:05:13Z",
+        "state": "LIVE",
+        "viewerCount": 1
+      },
+      "metadata": {
+        "streamTitle": "Hello, I am dog 🐶. I am streaming in a square ⬛️ aspect ratio. Welcome to my Birthday stream! #WoofWoof #BirthdayDog #BirthdayHat #LivinTheDogLife",
+        "userAvatar": "https://d39ii5l128t5ul.cloudfront.net/assets/animals_square/bear.png",
+        "userName": "Big Bear",
+        "userColors": {
+          "primary": "#FFB660",
+          "secondary": "#0075FF"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "stream": {
+        "channelArn": "arn:aws:ivs:us-west-2:XXXXXXXXXXXX:channel/XXXXXXXXXXXX",
+        "health": "HEALTHY",
+        "playbackUrl": "https://4c62a87c1810.us-west-2.playback.live-video.net/api/video/v1/us-west-2.049054135175.channel.iNMK0w9JnUkC.m3u8",
+        "startTime": "2021-06-17T22:05:13Z",
+        "state": "LIVE",
+        "viewerCount": 1
+      },
+      "metadata": {
+        "streamTitle": "Welcome to my cooking stream",
+        "userAvatar": "https://d39ii5l128t5ul.cloudfront.net/assets/animals_square/hippo.png",
+        "userName": "Helena Hippo",
+        "userColors": {
+          "primary": "#FFB660",
+          "secondary": "#0075FF"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "stream": {
+        "channelArn": "arn:aws:ivs:us-west-2:XXXXXXXXXXXX:channel/XXXXXXXXXXXX",
+        "health": "HEALTHY",
+        "playbackUrl": "https://4c62a87c1810.us-west-2.playback.live-video.net/api/video/v1/us-west-2.049054135175.channel.FMaC7IMoyDEA.m3u8",
+        "startTime": "2021-06-17T22:05:13Z",
+        "state": "LIVE",
+        "viewerCount": 1
+      },
+      "metadata": {
+        "streamTitle": "Welcome to my square aspect ratio stream",
+        "userAvatar": "https://d39ii5l128t5ul.cloudfront.net/assets/animals_square/bird.png",
+        "userName": "Polly Parrot",
         "userColors": {
           "primary": "#FFB660",
           "secondary": "#0075FF"
