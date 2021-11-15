@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import 'context-filter-polyfill';
 
 import PlayerControls from './PlayerControls';
@@ -6,6 +6,7 @@ import Spinner from '../../common/Spinner';
 import { Play } from '../../../assets/icons';
 
 import usePlayer from '../../hooks/usePlayer';
+import { isElementInViewport } from '../utils';
 
 import './Player.css';
 
@@ -22,25 +23,46 @@ const Player = ({ id, type, playbackUrl, isActive, toggleMetadata }) => {
     pid,
     video,
     load,
-    destroy,
     muted,
     paused,
     loading,
     toggleMute,
     play,
     pause,
-    togglePlayPause
+    togglePlayPause,
+    player,
+    log
   } = usePlayer(id);
 
   useEffect(() => {
-    if (playbackUrl) {
-      load(playbackUrl, isActive);
-      return () => destroy();
-    }
+    if (playbackUrl) load(playbackUrl, isActive);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playbackUrl]);
 
   useEffect(() => (isActive ? play() : pause()), [isActive, pause, play]);
+
+  const attachBlur = useCallback(
+    (canvas) => {
+      if (
+        canvas &&
+        isElementInViewport(canvas) &&
+        player?.getState() === window.IVSPlayer.PlayerState.PLAYING
+      ) {
+        const ctx = canvas.getContext('2d');
+        ctx.filter = 'blur(3px)';
+
+        // log('attachBlur', canvas);
+
+        // requestAnimationFrame(function draw() {
+        //   ctx.drawImage(video.current, 0, 0, canvas.width, canvas.height);
+
+        //   requestAnimationFrame(draw);
+        // });
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [type, player]
+  );
 
   if (!window.IVSPlayer.isPlayerSupported) {
     console.warn('The current browser does not support the Amazon IVS player.');
@@ -56,6 +78,7 @@ const Player = ({ id, type, playbackUrl, isActive, toggleMetadata }) => {
       />
       <div className="player-video">
         <video id={`${type.toLowerCase()}-video`} ref={video} playsInline muted />
+        <canvas id={`${type.toLowerCase()}-blur`} ref={attachBlur} />
 
         <Spinner loading={loading && !paused && isActive} />
         <div

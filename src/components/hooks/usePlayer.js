@@ -92,7 +92,6 @@ const usePlayer = (id) => {
   // Handle case when autoplay with sound is blocked by browser
   useEffect(() => {
     if (loading || !player.current) return;
-    log('muting useEffect');
     toggleMute(player.current.isMuted());
   }, [loading, toggleMute]);
 

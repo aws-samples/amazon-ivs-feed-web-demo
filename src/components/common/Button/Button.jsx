@@ -14,9 +14,11 @@ const Button = ({ children, onClick, ...otherProps }) => {
   };
 
   return (
-    <button className="button" onClick={clickHandler} {...otherProps}>
-      {typeof Icon === 'string' ? `${Icon} ` : <Icon />}
-    </button>
+    <span style={{ cursor: 'pointer' }}>
+      <button className="button" onClick={clickHandler} {...otherProps}>
+        {typeof Icon === 'string' ? `${Icon} ` : <Icon />}
+      </button>
+    </span>
   );
 };
 

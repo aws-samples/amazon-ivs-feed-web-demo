@@ -8,7 +8,7 @@ import useStream from '../../contexts/Stream/useStream';
 import './Feed.css';
 
 const PLAYER_TYPES = Object.freeze({ ACTIVE: 'ACTIVE', NEXT: 'NEXT', PREV: 'PREV' });
-const SWIPE_DURATION = 700; // ms
+const SWIPE_DURATION = 1000; // ms
 
 const Feed = ({ toggleMetadata }) => {
   const { activeStream, actionTriggered, gotoNextStream, gotoPrevStream } = useStream();
@@ -18,36 +18,8 @@ const Feed = ({ toggleMetadata }) => {
     { playbackUrl: '', type: PLAYER_TYPES.PREV }
   ]);
 
-  /**
-   * S0 = YtnrVcQbttF0
-   * S1 = DmumNckWFTqz
-   * S2 = LaSuL3bHBRR7
-   * S3 = WP4bWqiALo67
-   * S4 = iNMK0w9JnUkC
-   * S5 = FMaC7IMoyDEA
-   *
-   *
-   *          INITIAL             gotoNextStream        gotoNextStream      gotoNextStream
-   *
-   * [P1]     ACTIVE  -  S0       prev    -  S0         (next)  -  S3       ACTIVE  -  S3
-   *
-   * [P2]     next    -  S1       ACTIVE  -  S1         prev    -  S1       (next)  -  S4
-   *
-   * [P3]     prev    -  S5       (next)  -  S2         ACTIVE  -  S2       prev    -  S2
-   *
-   *
-   *          INITIAL             gotoPrevStream        gotoPrevStream      gotoPrevStream
-   *
-   * [P1]     ACTIVE  -  S0       next    -  S0         (prev)  -  S3       ACTIVE  -  S3
-   *
-   * [P2]     next    -  S1       (prev)  -  S4         ACTIVE  -  S4       next    -  S4
-   *
-   * [P3]     prev    -  S5       ACTIVE  -  S5         next    -  S5       prev    -  S2
-   */
-
   useEffect(() => {
     if (activeStream) {
-      // Streams
       const streams = [activeStream, activeStream.next, activeStream.prev];
       const [activePlaybackUrl, nextPlaybackUrl, prevPlaybackUrl] = streams.map(
         ({ data }) => data.stream.playbackUrl
@@ -80,7 +52,7 @@ const Feed = ({ toggleMetadata }) => {
   }, [activeStream]);
 
   const onStreamChange = (swiper, event) => {
-    swiper.keyboard.disable();
+    console.log('onStreamChange', { swiper, event });
 
     if (
       swiper.swipeDirection === 'next' || // Touch: swipe up
@@ -97,8 +69,13 @@ const Feed = ({ toggleMetadata }) => {
     ) {
       gotoPrevStream();
     }
+  };
 
-    setTimeout(() => swiper.keyboard.enable(), SWIPE_DURATION + 300);
+  const onSlideChangeTransitionStart = (swiper) => {
+    swiper.disable();
+    setTimeout(() => {
+      swiper.enable();
+    }, SWIPE_DURATION);
   };
 
   return (
@@ -118,6 +95,7 @@ const Feed = ({ toggleMetadata }) => {
         onScroll={onStreamChange}
         onKeyPress={onStreamChange}
         onSlideChange={onStreamChange}
+        onSlideChangeTransitionStart={onSlideChangeTransitionStart}
       >
         {players.map((player, i) => (
           <SwiperSlide key={`player-${i + 1}`}>
