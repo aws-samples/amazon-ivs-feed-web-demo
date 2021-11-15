@@ -1,5 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
-import 'context-filter-polyfill';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 
 const {
   isPlayerSupported,
@@ -11,22 +10,28 @@ const { ENDED, PLAYING, READY, BUFFERING } = PlayerState;
 const { ERROR } = PlayerEventType;
 
 const usePlayer = (id) => {
-  // Refs
   const player = useRef(null);
   const video = useRef();
   const pid = useRef(id);
 
-  // State
-  const [loading, setLoading] = useState(true);
-  const [muted, setMuted] = useState(true);
-  const [paused, setPaused] = useState(false);
+  const {
+    muted,
+    paused,
+    loading,
+    toggleMute,
+    play,
+    pause,
+    togglePlayPause,
+    setLoading,
+    resetControls
+  } = usePlayerControls(player);
 
   // Generic PlayerState event listener
   const onStateChange = useCallback(() => {
     const newState = player.current.getState();
     setLoading(newState !== PLAYING);
     console.log(`Player ${pid.current} State - ${newState}`);
-  }, []);
+  }, [setLoading]);
 
   // Generic PlayerEventType event listener
   const onError = useCallback((err) => {
@@ -50,10 +55,8 @@ const usePlayer = (id) => {
     video.current.removeAttribute('src'); // remove possible stale src
 
     // reset player state controls to initial values
-    setLoading(false);
-    setMuted(true);
-    setPaused(false);
-  }, [onError, onStateChange]);
+    resetControls();
+  }, [onError, onStateChange, resetControls]);
 
   const create = useCallback(() => {
     if (!isPlayerSupported) return;
@@ -74,62 +77,27 @@ const usePlayer = (id) => {
 
   const load = useCallback(
     (playbackUrl, playAfterLoad) => {
-      if (!player.current) return;
-
-      if (player.current.core.isLoaded) create();
+      if (!player.current || player.current.core.isLoaded) create();
       player.current.load(playbackUrl);
 
       if (playAfterLoad) play();
     },
-    [create]
+    [create, play]
   );
 
-  const toggleMute = () => {
-    if (!player.current) return;
-
-    const muteNext = !player.current.isMuted();
-    player.current.setMuted(muteNext);
-    setMuted(muteNext);
+  const log = (...messages) => {
+    console.log(`Player ${pid.current}:`, ...messages);
   };
-
-  const play = () => {
-    if (!player.current) return;
-
-    if (player.current.isPaused()) {
-      player.current.play();
-      setPaused(false);
-    }
-  };
-
-  const pause = () => {
-    if (!player.current) return;
-
-    if (!player.current.isPaused()) {
-      player.current.pause();
-      setPaused(true);
-    }
-  };
-
-  const togglePlayPause = () => {
-    if (!player.current) return;
-
-    player.current.isPaused() ? play() : pause();
-  };
-
-  // Initialization
-  useEffect(() => {
-    create();
-    return () => destroy();
-  }, [create, destroy]);
 
   // Handle case when autoplay with sound is blocked by browser
   useEffect(() => {
     if (loading || !player.current) return;
-    setMuted(player.current.isMuted());
-  }, [loading]);
+    log('muting useEffect');
+    toggleMute(player.current.isMuted());
+  }, [loading, toggleMute]);
 
   return {
-    instance: player.current,
+    player: player.current,
     pid: pid.current,
     togglePlayPause,
     toggleMute,
@@ -140,8 +108,71 @@ const usePlayer = (id) => {
     video,
     load,
     play,
-    pause
+    pause,
+    log
   };
+};
+
+const usePlayerControls = (player) => {
+  const [muted, setMuted] = useState(true);
+  const [paused, setPaused] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const play = useCallback(() => {
+    if (!player.current) return;
+
+    if (player.current.isPaused()) {
+      player.current.play();
+      setPaused(false);
+    }
+  }, [player]);
+
+  const pause = useCallback(() => {
+    if (!player.current) return;
+
+    if (!player.current.isPaused()) {
+      player.current.pause();
+      setPaused(true);
+    }
+  }, [player]);
+
+  const togglePlayPause = useCallback(() => {
+    if (!player.current) return;
+
+    player.current.isPaused() ? play() : pause();
+  }, [pause, play, player]);
+
+  const toggleMute = useCallback(
+    (mute = false) => {
+      if (!player.current) return;
+
+      const muteNext = mute || !player.current.isMuted();
+      player.current.setMuted(muteNext);
+      setMuted(muteNext);
+    },
+    [player]
+  );
+
+  const resetControls = useCallback(() => {
+    setMuted(true);
+    setPaused(false);
+    setLoading(true);
+  }, []);
+
+  return useMemo(
+    () => ({
+      muted,
+      paused,
+      loading,
+      toggleMute,
+      play,
+      pause,
+      togglePlayPause,
+      setLoading,
+      resetControls
+    }),
+    [loading, muted, pause, paused, play, toggleMute, togglePlayPause, resetControls]
+  );
 };
 
 export default usePlayer;

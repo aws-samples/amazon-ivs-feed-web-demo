@@ -14,7 +14,7 @@ const Button = ({ children, onClick, ...otherProps }) => {
   };
 
   return (
-    <button className="button" onClick={!!onClick && clickHandler} {...otherProps}>
+    <button className="button" onClick={clickHandler} {...otherProps}>
       {typeof Icon === 'string' ? `${Icon} ` : <Icon />}
     </button>
   );

@@ -7,17 +7,20 @@ import useStream from '../../../../contexts/Stream/useStream';
 
 import './PlayerControls.css';
 
-const PlayerControls = ({ playerData, toggleMetadata }) => {
-  const { muted, toggleMute } = playerData;
-  const { throttledGotoNextStream, throttledGotoPrevStream } = useStream();
+const PlayerControls = ({ muted, toggleMute, toggleMetadata }) => {
+  const { gotoNextStream, gotoPrevStream } = useStream();
 
   return (
     <div className="player-buttons">
       <Like />
-      <Button onClick={toggleMute}>{muted ? 'VolumeOff' : 'VolumeUp'}</Button>
+      <Button onClick={() => toggleMute()}>{muted ? 'VolumeOff' : 'VolumeUp'}</Button>
       <hr className="divider" />
-      <Button onClick={throttledGotoPrevStream}>ChevronUp</Button>
-      <Button onClick={throttledGotoNextStream}>ChevronDown</Button>
+      <Button id="prev-stream" onClick={gotoPrevStream}>
+        ChevronUp
+      </Button>
+      <Button id="next-stream" onClick={gotoNextStream}>
+        ChevronDown
+      </Button>
       <span className="metadata-toggle">
         <hr className="divider" />
         <Button onClick={() => toggleMetadata()}>Description</Button>

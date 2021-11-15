@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useReducer } from 'react';
 import StreamContext from './context';
 import CircularLinkedList from '../../utils/CircularLinkedList';
-import useThrottledCallback from '../../components/hooks/useThrottledCallback';
 
 const initialState = {
   streams: null, // Circular doubly linked list of stream nodes
@@ -41,30 +40,32 @@ const StreamProvider = ({ children }) => {
   }, []);
 
   const setActiveStream = useCallback((streamNode, actionTriggered = null) => {
-    dispatch({
-      type: actionTypes.SET_ACTIVE_STREAM,
-      activeStream: streamNode,
-      actionTriggered: actionTriggered
-    });
+    if (streamNode) {
+      dispatch({
+        type: actionTypes.SET_ACTIVE_STREAM,
+        activeStream: streamNode,
+        actionTriggered: actionTriggered
+      });
+    }
   }, []);
 
-  const throttledGotoNextStream = useThrottledCallback(() => {
-    setActiveStream(state.activeStream.next, 'next');
-  }, 500);
+  const gotoNextStream = useCallback(() => {
+    state.activeStream && setActiveStream(state.activeStream.next, 'next');
+  }, [state.activeStream, setActiveStream]);
 
-  const throttledGotoPrevStream = useThrottledCallback(() => {
-    setActiveStream(state.activeStream.prev, 'prev');
-  }, 500);
+  const gotoPrevStream = useCallback(() => {
+    state.activeStream && setActiveStream(state.activeStream.prev, 'prev');
+  }, [state.activeStream, setActiveStream]);
 
   const value = useMemo(
     () => ({
       ...state,
       setStreams,
       setActiveStream,
-      throttledGotoNextStream,
-      throttledGotoPrevStream
+      gotoNextStream,
+      gotoPrevStream
     }),
-    [state, setStreams, setActiveStream, throttledGotoNextStream, throttledGotoPrevStream]
+    [state, setStreams, setActiveStream, gotoNextStream, gotoPrevStream]
   );
 
   return <StreamContext.Provider value={value}>{children}</StreamContext.Provider>;
