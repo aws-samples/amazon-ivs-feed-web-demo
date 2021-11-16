@@ -39,7 +39,10 @@ const Player = ({ id, type, playbackUrl, isActive, toggleMetadata }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playbackUrl]);
 
-  useEffect(() => (isActive ? play() : pause()), [isActive, pause, play]);
+  useEffect(() => {
+    // log('isElementInViewport', isElementInViewport(video.current));
+    isActive ? play() : pause();
+  }, [isActive, pause, play, video]);
 
   const attachBlur = useCallback(
     (canvas) => {
@@ -61,7 +64,7 @@ const Player = ({ id, type, playbackUrl, isActive, toggleMetadata }) => {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [type, player]
+    [type, isActive, player]
   );
 
   if (!window.IVSPlayer.isPlayerSupported) {

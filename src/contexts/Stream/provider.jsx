@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useReducer } from 'react';
 import StreamContext from './context';
 import CircularLinkedList from '../../utils/CircularLinkedList';
+import useThrottledCallback from '../../components/hooks/useThrottledCallback';
 
 const initialState = {
   streams: null, // Circular doubly linked list of stream nodes
@@ -49,23 +50,23 @@ const StreamProvider = ({ children }) => {
     }
   }, []);
 
-  const gotoNextStream = useCallback(() => {
+  const throttledGotoNextStream = useThrottledCallback(() => {
     state.activeStream && setActiveStream(state.activeStream.next, 'next');
-  }, [state.activeStream, setActiveStream]);
+  }, 750);
 
-  const gotoPrevStream = useCallback(() => {
+  const throttledGotoPrevStream = useThrottledCallback(() => {
     state.activeStream && setActiveStream(state.activeStream.prev, 'prev');
-  }, [state.activeStream, setActiveStream]);
+  }, 750);
 
   const value = useMemo(
     () => ({
       ...state,
       setStreams,
       setActiveStream,
-      gotoNextStream,
-      gotoPrevStream
+      throttledGotoNextStream,
+      throttledGotoPrevStream
     }),
-    [state, setStreams, setActiveStream, gotoNextStream, gotoPrevStream]
+    [state, setStreams, setActiveStream, throttledGotoNextStream, throttledGotoPrevStream]
   );
 
   return <StreamContext.Provider value={value}>{children}</StreamContext.Provider>;

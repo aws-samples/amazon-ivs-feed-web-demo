@@ -57,12 +57,18 @@ const hexToRgb = (hex) => {
   } else return '';
 };
 
-const shiftObjectValues = (obj, dir) => {
-  const keys = Object.keys(obj);
-  const vals = Object.values(obj);
-  if (dir === 'up' || dir === 'left') vals.push(vals.shift());
-  if (dir === 'down' || dir === 'right') vals.unshift(vals.pop());
-  vals.forEach((v, i) => (obj[keys[i]] = v));
+const isElementInViewport = (el) => {
+  const { innerHeight, innerWidth } = window;
+  const { clientHeight, clientWidth } = document.documentElement;
+
+  const rect = el.getBoundingClientRect();
+
+  return (
+    rect.top >= 0 &&
+    rect.left >= 0 &&
+    rect.bottom <= (innerHeight || clientHeight) &&
+    rect.right <= (innerWidth || clientWidth)
+  );
 };
 
-export { getRandomColor, getTimeSince, hexToRgb, shiftObjectValues };
+export { getRandomColor, getTimeSince, hexToRgb, isElementInViewport };

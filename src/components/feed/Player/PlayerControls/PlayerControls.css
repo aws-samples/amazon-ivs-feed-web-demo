@@ -8,6 +8,11 @@
   align-items: center;
   row-gap: 1rem;
   z-index: 100;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  -webkit-transform: translate3d(0, 0, 0);
 }
 
 .divider {
