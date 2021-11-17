@@ -52,11 +52,11 @@ const StreamProvider = ({ children }) => {
 
   const throttledGotoNextStream = useThrottledCallback(() => {
     state.activeStream && setActiveStream(state.activeStream.next, 'next');
-  }, 750);
+  }, 400);
 
   const throttledGotoPrevStream = useThrottledCallback(() => {
     state.activeStream && setActiveStream(state.activeStream.prev, 'prev');
-  }, 750);
+  }, 400);
 
   const value = useMemo(
     () => ({

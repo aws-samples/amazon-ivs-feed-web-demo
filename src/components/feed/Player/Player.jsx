@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import 'context-filter-polyfill';
 
 import PlayerControls from './PlayerControls';
@@ -6,7 +6,6 @@ import Spinner from '../../common/Spinner';
 import { Play } from '../../../assets/icons';
 
 import usePlayer from '../../hooks/usePlayer';
-import { isElementInViewport } from '../utils';
 
 import './Player.css';
 
@@ -14,11 +13,11 @@ import './Player.css';
  * Props:
  * @param {number} id   Player ID
  * @param {string} type 'ACTIVE' | 'NEXT' | 'PREV'
- * @param {boolean} isActive true if type is 'ACTIVE'; false otherwise
  * @param {string} playbackUrl stream URL to load into the player for playback
+ * @param {function isPlayerActive(HTMLVideoElement): boolean} isPlayerActive true if type is 'ACTIVE' and player's attached HTML video element is in viewport; false otherwise
  * @param {function toggleMetadata(): void} toggleMetadata toggles metadata panel in mobile view
  */
-const Player = ({ id, type, playbackUrl, isActive, toggleMetadata }) => {
+const Player = ({ id, type, playbackUrl, isPlayerActive, toggleMetadata }) => {
   const {
     pid,
     video,
@@ -29,43 +28,41 @@ const Player = ({ id, type, playbackUrl, isActive, toggleMetadata }) => {
     toggleMute,
     play,
     pause,
-    togglePlayPause,
-    player,
-    log
+    togglePlayPause
+    // log
   } = usePlayer(id);
+  const isActive = isPlayerActive(video.current);
 
   useEffect(() => {
-    if (playbackUrl) load(playbackUrl, isActive);
+    if (playbackUrl) load(playbackUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playbackUrl]);
 
   useEffect(() => {
-    // log('isElementInViewport', isElementInViewport(video.current));
     isActive ? play() : pause();
   }, [isActive, pause, play, video]);
 
-  const attachBlur = useCallback(
-    (canvas) => {
-      if (
-        canvas &&
-        isElementInViewport(canvas) &&
-        player?.getState() === window.IVSPlayer.PlayerState.PLAYING
-      ) {
-        const ctx = canvas.getContext('2d');
-        ctx.filter = 'blur(3px)';
+  // const isBlurring = useRef(false);
+  // const attachBlur = useCallback(
+  //   (canvas) => {
+  //     if (canvas && isPlayerInViewport(video.current) && !isBlurring.current) {
+  //       isBlurring.current = true;
+  //       const ctx = canvas.getContext('2d');
+  //       ctx.filter = 'blur(3px)';
 
-        // log('attachBlur', canvas);
-
-        // requestAnimationFrame(function draw() {
-        //   ctx.drawImage(video.current, 0, 0, canvas.width, canvas.height);
-
-        //   requestAnimationFrame(draw);
-        // });
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [type, isActive, player]
-  );
+  //       requestAnimationFrame(function draw() {
+  //         if (!isPlayerInViewport(video.current)) {
+  //           isBlurring.current = false;
+  //           return;
+  //         }
+  //         ctx.drawImage(video.current, 0, 0, canvas.width, canvas.height);
+  //         requestAnimationFrame(draw);
+  //       });
+  //     }
+  //   },
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  //   [type, player, isPlayerInViewport(video.current)]
+  // );
 
   if (!window.IVSPlayer.isPlayerSupported) {
     console.warn('The current browser does not support the Amazon IVS player.');
@@ -81,7 +78,7 @@ const Player = ({ id, type, playbackUrl, isActive, toggleMetadata }) => {
       />
       <div className="player-video">
         <video id={`${type.toLowerCase()}-video`} ref={video} playsInline muted />
-        <canvas id={`${type.toLowerCase()}-blur`} ref={attachBlur} />
+        {/* <canvas id={`${type.toLowerCase()}-blur`} ref={attachBlur} /> */}
 
         <Spinner loading={loading && !paused && isActive} />
         <div

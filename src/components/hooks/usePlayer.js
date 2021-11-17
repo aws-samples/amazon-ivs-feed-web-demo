@@ -76,13 +76,11 @@ const usePlayer = (id) => {
   }, [destroy, onError, onStateChange]);
 
   const load = useCallback(
-    (playbackUrl, playAfterLoad) => {
+    (playbackUrl) => {
       if (!player.current || player.current.core.isLoaded) create();
       player.current.load(playbackUrl);
-
-      if (playAfterLoad) play();
     },
-    [create, play]
+    [create]
   );
 
   const log = (...messages) => {
