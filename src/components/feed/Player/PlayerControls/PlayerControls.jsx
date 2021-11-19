@@ -5,15 +5,15 @@ import Like from '../../like';
 
 import './PlayerControls.css';
 
-const PlayerControls = ({ muted, toggleMute, toggleMetadata, updateSwipeDirection }) => (
+const PlayerControls = ({ muted, toggleMute, toggleMetadata, setSwipeDirection }) => (
   <div className="player-buttons">
     <Like />
     <Button onClick={() => toggleMute()}>{muted ? 'VolumeOff' : 'VolumeUp'}</Button>
     <hr className="divider" />
-    <Button id="prev-stream" onClick={() => updateSwipeDirection('prev')}>
+    <Button id="prev-stream" onClick={() => setSwipeDirection('prev')}>
       ChevronUp
     </Button>
-    <Button id="next-stream" onClick={() => updateSwipeDirection('next')}>
+    <Button id="next-stream" onClick={() => setSwipeDirection('next')}>
       ChevronDown
     </Button>
     <span className="metadata-toggle">

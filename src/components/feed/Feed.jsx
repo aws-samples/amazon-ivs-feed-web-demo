@@ -55,24 +55,26 @@ const Feed = ({ toggleMetadata }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeStream]);
 
-  const updateSwipeDirection = (swiper, event) => {
-    if (
-      (swiper && swiper.swipeDirection === 'next') || // Touch: swipe up
-      event?.wheelDeltaY < 0 || // MouseWheel: vertical scroll up
-      event === 40 || // Keyboard: ArrowDown (keyCode 40)
-      event === 34 || // Keyboard: PageDown (keyCode 34)
-      event === 'next' // Other: direct swipe direction set (i.e. next nav. button)
-    ) {
-      swipeDirection.current = 'next';
-    } else if (
-      (swiper && swiper.swipeDirection === 'prev') || // Touch: swipe down
-      event?.wheelDeltaY > 0 || // MouseWheel: vertical scroll down
-      event === 38 || // Keyboard: ArrowUp (keyCode 38)
-      event === 33 || // Keyboard: PageUp (keyCode 33)
-      event === 'prev' // Other: direct swipe direction set (i.e. prev nav. button)
-    ) {
-      swipeDirection.current = 'prev';
-    }
+  const setSwipeDirection = (swiper, event) => {
+    if (!swipeDirection.current) {
+      if (
+        (swiper && swiper.swipeDirection === 'next') || // Touch: swipe up
+        event?.wheelDeltaY < 0 || // MouseWheel: vertical scroll up
+        event === 40 || // Keyboard: ArrowDown (keyCode 40)
+        event === 34 || // Keyboard: PageDown (keyCode 34)
+        event === 'next' // Other: direct swipe direction set (i.e. next nav. button)
+      ) {
+        swipeDirection.current = 'next';
+      } else if (
+        (swiper && swiper.swipeDirection === 'prev') || // Touch: swipe down
+        event?.wheelDeltaY > 0 || // MouseWheel: vertical scroll down
+        event === 38 || // Keyboard: ArrowUp (keyCode 38)
+        event === 33 || // Keyboard: PageUp (keyCode 33)
+        event === 'prev' // Other: direct swipe direction set (i.e. prev nav. button)
+      ) {
+        swipeDirection.current = 'prev';
+      }
+    } else swipeDirection.current = null;
   };
 
   const updateStreams = () => {
@@ -106,13 +108,18 @@ const Feed = ({ toggleMetadata }) => {
           navigation={{ prevEl: '#prev-stream', nextEl: '#next-stream' }}
           mousewheel={{ forceToAxis: true, thresholdTime: 750, thresholdDelta: 75 }}
           /* event handlers */
-          onScroll={updateSwipeDirection} // mousewheel events
-          onKeyPress={updateSwipeDirection} // keyboard events
-          onSlideChange={updateSwipeDirection} // swipe events
+          onScroll={setSwipeDirection} // mousewheel events
+          onKeyPress={setSwipeDirection} // keyboard events
+          onSlideChange={setSwipeDirection} // swipe events
           onSlideChangeTransitionStart={(swiper) => swiper.disable()}
           onSlideChangeTransitionEnd={(swiper) => {
             swiper.enable();
             updateStreams();
+            setTimeout(() => {
+              swiper.update();
+              swiper.slideReset();
+              swiper.slideToClosest();
+            });
           }}
           onTouchEnd={updateStreams} // mobile touch swipes
         >
@@ -121,12 +128,12 @@ const Feed = ({ toggleMetadata }) => {
               {({ isVisible }) => (
                 <Player
                   {...player}
-                  blur
                   id={i + 1}
+                  blur={{ enabled: true, stillFrame: true }}
                   isPlayerVisible={isVisible}
                   isPlayerActive={player.type === PLAYER_TYPES.ACTIVE}
                   toggleMetadata={toggleMetadata}
-                  updateSwipeDirection={(dir) => updateSwipeDirection(null, dir)}
+                  setSwipeDirection={(dir) => setSwipeDirection(null, dir)}
                 />
               )}
             </SwiperSlide>

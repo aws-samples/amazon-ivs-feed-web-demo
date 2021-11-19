@@ -26,11 +26,8 @@ const Player = ({
   isPlayerActive,
   isPlayerVisible,
   toggleMetadata,
-  updateSwipeDirection
+  setSwipeDirection
 }) => {
-  const isActive = useRef(isPlayerActive);
-  const isVisible = useRef(isPlayerVisible);
-
   const {
     pid,
     video,
@@ -41,26 +38,25 @@ const Player = ({
     toggleMute,
     play,
     pause,
-    togglePlayPause,
-    player
-  } = usePlayer(id, isPlayerActive);
-
+    togglePlayPause
+  } = usePlayer(id);
+  const isActive = useRef(isPlayerActive);
+  const isVisible = useRef(isPlayerVisible);
   const canvas = useRef();
 
   useEffect(() => {
     isActive.current = isPlayerActive;
     isVisible.current = isPlayerVisible;
     isActive.current ? play() : pause();
-
-    if (blur && isActive && !isBlurring.current) {
+    if (blur.enabled && isActive.current && !isBlurring.current) {
       attachBlur(canvas.current);
     }
-  }, [player, isPlayerActive, isPlayerVisible, pause, play]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isPlayerActive, isPlayerVisible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const firstLoad = useRef(true);
   useEffect(() => {
     if (playbackUrl) {
-      if (!firstLoad.current && blur) {
+      if (!firstLoad.current && blur.enabled) {
         // Clear the canvas since we're loading a new stream
         setTimeout(() => {
           canvas.current
@@ -74,7 +70,16 @@ const Player = ({
       load(playbackUrl); // Load new playbackUrl
       firstLoad.current = false;
     }
-  }, [blur, load, playbackUrl]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [blur.enabled, load, playbackUrl]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const isCanvasBlank = () => {
+    const can = canvas.current;
+    const ctx = can.getContext('2d');
+    const pixelBuffer = new Uint32Array(
+      ctx.getImageData(0, 0, can.width, can.height).data.buffer
+    );
+    return !pixelBuffer.some((color) => color !== 0);
+  };
 
   const isBlurring = useRef(false);
   const attachBlur = useCallback(
@@ -85,13 +90,15 @@ const Player = ({
         isBlurring.current = true;
 
         const draw = () => {
-          ctx.drawImage(video.current, 0, 0, canvas.width, canvas.height);
-
-          if (!isActive.current && isBlurring.current) {
+          if (
+            (!isActive.current && isBlurring.current) ||
+            (blur.stillFrame && !isCanvasBlank())
+          ) {
             isBlurring.current = false;
             return;
           }
 
+          ctx.drawImage(video.current, 0, 0, canvas.width, canvas.height);
           requestAnimationFrame(isVisible.current ? draw : throttledDraw);
         };
 
@@ -103,15 +110,12 @@ const Player = ({
   );
 
   return (
-    <div
-      id={`${type.toLowerCase()}-player-${pid}${isPlayerActive.current ? '-active' : ''}`}
-      className="player-container"
-    >
+    <div id={`${type.toLowerCase()}-player-${pid}`} className="player-container">
       <PlayerControls
         muted={muted}
         toggleMute={toggleMute}
         toggleMetadata={toggleMetadata}
-        updateSwipeDirection={updateSwipeDirection}
+        setSwipeDirection={setSwipeDirection}
       />
       <div className="player-video">
         <video id={`${type.toLowerCase()}-video`} ref={video} playsInline muted />
