@@ -58,4 +58,6 @@ body {
   background-color: #000;
   font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, Roboto, 'Segoe UI',
     Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  overscroll-behavior: contain;
+  overflow: hidden;
 }

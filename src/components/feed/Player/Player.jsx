@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
+import throttle from 'lodash.throttle';
 import 'context-filter-polyfill';
 
 import PlayerControls from './PlayerControls';
@@ -17,7 +18,19 @@ import './Player.css';
  * @param {function isPlayerActive(HTMLVideoElement): boolean} isPlayerActive true if type is 'ACTIVE' and player's attached HTML video element is in viewport; false otherwise
  * @param {function toggleMetadata(): void} toggleMetadata toggles metadata panel in mobile view
  */
-const Player = ({ id, type, playbackUrl, isPlayerActive, toggleMetadata }) => {
+const Player = ({
+  id,
+  blur,
+  type,
+  playbackUrl,
+  isPlayerActive,
+  isPlayerVisible,
+  toggleMetadata,
+  updateSwipeDirection
+}) => {
+  const isActive = useRef(isPlayerActive);
+  const isVisible = useRef(isPlayerVisible);
+
   const {
     pid,
     video,
@@ -28,65 +41,88 @@ const Player = ({ id, type, playbackUrl, isPlayerActive, toggleMetadata }) => {
     toggleMute,
     play,
     pause,
-    togglePlayPause
-    // log
-  } = usePlayer(id);
-  const isActive = isPlayerActive(video.current);
+    togglePlayPause,
+    player
+  } = usePlayer(id, isPlayerActive);
+
+  const canvas = useRef();
 
   useEffect(() => {
-    if (playbackUrl) load(playbackUrl);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playbackUrl]);
+    isActive.current = isPlayerActive;
+    isVisible.current = isPlayerVisible;
+    isActive.current ? play() : pause();
 
+    if (blur && isActive && !isBlurring.current) {
+      attachBlur(canvas.current);
+    }
+  }, [player, isPlayerActive, isPlayerVisible, pause, play]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const firstLoad = useRef(true);
   useEffect(() => {
-    isActive ? play() : pause();
-  }, [isActive, pause, play, video]);
+    if (playbackUrl) {
+      if (!firstLoad.current && blur) {
+        // Clear the canvas since we're loading a new stream
+        setTimeout(() => {
+          canvas.current
+            .getContext('2d')
+            .clearRect(0, 0, canvas.current.width, canvas.current.height);
+          // Required for iOS to reset canvas
+          canvas.current.width = canvas.current.width; // eslint-disable-line no-self-assign
+        });
+      }
 
-  // const isBlurring = useRef(false);
-  // const attachBlur = useCallback(
-  //   (canvas) => {
-  //     if (canvas && isPlayerInViewport(video.current) && !isBlurring.current) {
-  //       isBlurring.current = true;
-  //       const ctx = canvas.getContext('2d');
-  //       ctx.filter = 'blur(3px)';
+      load(playbackUrl); // Load new playbackUrl
+      firstLoad.current = false;
+    }
+  }, [blur, load, playbackUrl]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  //       requestAnimationFrame(function draw() {
-  //         if (!isPlayerInViewport(video.current)) {
-  //           isBlurring.current = false;
-  //           return;
-  //         }
-  //         ctx.drawImage(video.current, 0, 0, canvas.width, canvas.height);
-  //         requestAnimationFrame(draw);
-  //       });
-  //     }
-  //   },
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  //   [type, player, isPlayerInViewport(video.current)]
-  // );
+  const isBlurring = useRef(false);
+  const attachBlur = useCallback(
+    (canvas) => {
+      if (canvas && !isBlurring.current) {
+        const ctx = canvas.getContext('2d');
+        ctx.filter = 'blur(3px)';
+        isBlurring.current = true;
 
-  if (!window.IVSPlayer.isPlayerSupported) {
-    console.warn('The current browser does not support the Amazon IVS player.');
-    return null;
-  }
+        const draw = () => {
+          ctx.drawImage(video.current, 0, 0, canvas.width, canvas.height);
+
+          if (!isActive.current && isBlurring.current) {
+            isBlurring.current = false;
+            return;
+          }
+
+          requestAnimationFrame(isVisible.current ? draw : throttledDraw);
+        };
+
+        const throttledDraw = throttle(draw, 200, { leading: true });
+        requestAnimationFrame(isVisible.current ? draw : throttledDraw);
+      }
+    },
+    [isActive.current, isVisible.current] // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   return (
-    <div id={`${type.toLowerCase()}-player-${pid}`} className="player-container">
+    <div
+      id={`${type.toLowerCase()}-player-${pid}${isPlayerActive.current ? '-active' : ''}`}
+      className="player-container"
+    >
       <PlayerControls
         muted={muted}
         toggleMute={toggleMute}
         toggleMetadata={toggleMetadata}
+        updateSwipeDirection={updateSwipeDirection}
       />
       <div className="player-video">
         <video id={`${type.toLowerCase()}-video`} ref={video} playsInline muted />
-        {/* <canvas id={`${type.toLowerCase()}-blur`} ref={attachBlur} /> */}
+        <canvas id={`${type.toLowerCase()}-blur`} ref={canvas} />
 
-        <Spinner loading={loading && !paused && isActive} />
+        <Spinner loading={loading && !paused} />
         <div
-          className={`btn-play-pause ${isActive ? 'active' : ''}`}
+          className={`btn-play-pause ${isActive.current ? 'active' : ''}`}
           onClick={() => togglePlayPause()}
-          tabIndex={1}
         >
-          {!loading && paused && isActive && <Play className="btn-play" />}
+          {!loading && paused && isActive.current && <Play className="btn-play" />}
         </div>
       </div>
     </div>

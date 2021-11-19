@@ -1,12 +1,16 @@
 import React, { useCallback, useMemo, useReducer } from 'react';
+
 import StreamContext from './context';
 import CircularLinkedList from '../../utils/CircularLinkedList';
 import useThrottledCallback from '../../components/hooks/useThrottledCallback';
 
+import config from '../../config';
+
+const { SWIPE_DURATION } = config;
+
 const initialState = {
   streams: null, // Circular doubly linked list of stream nodes
-  activeStream: null, // Reference to currently active stream node
-  actionTriggered: null // The type of action triggered to change the streams ('next', 'prev' or 'null' for anything else)
+  activeStream: null // Reference to currently active stream node
 };
 
 const actionTypes = {
@@ -21,8 +25,8 @@ const reducer = (state, action) => {
       return { streams, activeStream };
     }
     case actionTypes.SET_ACTIVE_STREAM: {
-      const { activeStream, actionTriggered } = action;
-      return { ...state, activeStream, actionTriggered };
+      const { activeStream } = action;
+      return { ...state, activeStream };
     }
     default:
       throw new Error('Unexpected action type');
@@ -40,23 +44,19 @@ const StreamProvider = ({ children }) => {
     dispatch({ type: actionTypes.SET_STREAMS, streams, activeStream });
   }, []);
 
-  const setActiveStream = useCallback((streamNode, actionTriggered = null) => {
+  const setActiveStream = useCallback((streamNode) => {
     if (streamNode) {
-      dispatch({
-        type: actionTypes.SET_ACTIVE_STREAM,
-        activeStream: streamNode,
-        actionTriggered: actionTriggered
-      });
+      dispatch({ type: actionTypes.SET_ACTIVE_STREAM, activeStream: streamNode });
     }
   }, []);
 
   const throttledGotoNextStream = useThrottledCallback(() => {
-    state.activeStream && setActiveStream(state.activeStream.next, 'next');
-  }, 400);
+    state.activeStream && setActiveStream(state.activeStream.next);
+  }, SWIPE_DURATION);
 
   const throttledGotoPrevStream = useThrottledCallback(() => {
-    state.activeStream && setActiveStream(state.activeStream.prev, 'prev');
-  }, 400);
+    state.activeStream && setActiveStream(state.activeStream.prev);
+  }, SWIPE_DURATION);
 
   const value = useMemo(
     () => ({

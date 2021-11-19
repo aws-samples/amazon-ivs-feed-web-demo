@@ -1,45 +1,42 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react/swiper-react';
 import { Navigation, Keyboard, Mousewheel } from 'swiper';
 
 import Player from './Player';
 import useStream from '../../contexts/Stream/useStream';
+import config from '../../config';
 
 import './Feed.css';
 
 const PLAYER_TYPES = Object.freeze({ ACTIVE: 'ACTIVE', NEXT: 'NEXT', PREV: 'PREV' });
-const SWIPE_DURATION = 400; // ms
+const { SWIPE_DURATION } = config;
 
 const Feed = ({ toggleMetadata }) => {
-  const {
-    activeStream,
-    actionTriggered,
-    throttledGotoNextStream,
-    throttledGotoPrevStream
-  } = useStream();
+  const { activeStream, throttledGotoNextStream, throttledGotoPrevStream } = useStream();
   const [players, setPlayers] = useState([
     { playbackUrl: '', type: PLAYER_TYPES.ACTIVE },
     { playbackUrl: '', type: PLAYER_TYPES.NEXT },
     { playbackUrl: '', type: PLAYER_TYPES.PREV }
   ]);
-  const [swiper, setSwiper] = useState(null);
+  const swipeDirection = useRef(null);
 
   useEffect(() => {
     if (activeStream) {
-      const streams = [activeStream, activeStream.next, activeStream.prev];
-      const [activePlaybackUrl, nextPlaybackUrl, prevPlaybackUrl] = streams.map(
-        ({ data }) => data.stream.playbackUrl
-      );
+      const [activePlaybackUrl, nextPlaybackUrl, prevPlaybackUrl] = [
+        activeStream,
+        activeStream.next,
+        activeStream.prev
+      ].map(({ data }) => data.stream.playbackUrl);
 
-      let _players = [...players];
+      let newPlayers = [...players];
 
-      if (actionTriggered === 'next') {
-        _players.unshift(_players.pop()); // shift players down
-      } else if (actionTriggered === 'prev') {
-        _players.push(_players.shift()); // shift players up
+      if (swipeDirection.current === 'next') {
+        newPlayers.unshift(newPlayers.pop()); // shift players down
+      } else if (swipeDirection.current === 'prev') {
+        newPlayers.push(newPlayers.shift()); // shift players up
       }
 
-      _players = _players.map((player) => {
+      newPlayers = newPlayers.map((player) => {
         switch (player.type) {
           case PLAYER_TYPES.ACTIVE:
             return { ...player, playbackUrl: activePlaybackUrl };
@@ -52,51 +49,41 @@ const Feed = ({ toggleMetadata }) => {
         }
       });
 
-      setPlayers(_players);
+      setPlayers(newPlayers);
+      swipeDirection.current = null;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeStream]);
 
-  const onStreamChange = (swiper, event) => {
-    if (swiper.swipeDirection || event) {
-      if (
-        swiper.swipeDirection === 'next' || // Touch: swipe up
-        event?.wheelDeltaY < 0 || // MouseWheel: vertical scroll up
-        event === 40 || // Keyboard: ArrowDown (keyCode 40)
-        event === 34 // Keyboard: PageDown (keyCode 34)
-      ) {
-        throttledGotoNextStream();
-      } else if (
-        swiper.swipeDirection === 'prev' || // Touch: swipe down
-        event?.wheelDeltaY > 0 || // MouseWheel: vertical scroll down
-        event === 38 || // Keyboard: ArrowUp (keyCode 38)
-        event === 33 // Keyboard: PageUp (keyCode 33)
-      ) {
-        throttledGotoPrevStream();
-      }
+  const updateSwipeDirection = (swiper, event) => {
+    if (
+      (swiper && swiper.swipeDirection === 'next') || // Touch: swipe up
+      event?.wheelDeltaY < 0 || // MouseWheel: vertical scroll up
+      event === 40 || // Keyboard: ArrowDown (keyCode 40)
+      event === 34 || // Keyboard: PageDown (keyCode 34)
+      event === 'next' // Other: direct swipe direction set (i.e. next nav. button)
+    ) {
+      swipeDirection.current = 'next';
+    } else if (
+      (swiper && swiper.swipeDirection === 'prev') || // Touch: swipe down
+      event?.wheelDeltaY > 0 || // MouseWheel: vertical scroll down
+      event === 38 || // Keyboard: ArrowUp (keyCode 38)
+      event === 33 || // Keyboard: PageUp (keyCode 33)
+      event === 'prev' // Other: direct swipe direction set (i.e. prev nav. button)
+    ) {
+      swipeDirection.current = 'prev';
     }
   };
 
-  const swiperHeartbeat = (swiper) => {
-    const currentSlidePlayerElem = swiper.slides[swiper.activeIndex].firstElementChild;
-    const isCurrentSlideActive = currentSlidePlayerElem.id.includes('active');
-    if (!isCurrentSlideActive) {
-      swiper.enable();
-      if (actionTriggered === 'next') {
-        swiper.slideNext(SWIPE_DURATION, false);
-      } else if (actionTriggered === 'prev') {
-        swiper.slidePrev(SWIPE_DURATION, false);
-      }
-    }
+  const updateStreams = () => {
+    if (swipeDirection.current === 'next') throttledGotoNextStream();
+    if (swipeDirection.current === 'prev') throttledGotoPrevStream();
   };
 
-  const isPlayerInViewport = (playerVideo) => {
-    if (swiper && playerVideo) {
-      const activeSlide = swiper.slides[swiper.activeIndex];
-      const activeVideo = activeSlide.querySelector('video');
-      return activeVideo === playerVideo;
-    } else return false;
-  };
+  if (!window.IVSPlayer.isPlayerSupported) {
+    console.warn('The current browser does not support the Amazon IVS player.');
+    return null;
+  }
 
   return (
     !!activeStream &&
@@ -105,39 +92,43 @@ const Feed = ({ toggleMetadata }) => {
         <Swiper
           /* swiper config */
           loop
+          nested
           autoHeight
+          watchSlidesProgress
+          updateOnWindowResize
           simulateTouch={false}
           direction={'vertical'}
           speed={SWIPE_DURATION}
           preventInteractionOnTransition
-          modules={[Navigation, Keyboard, Mousewheel]}
-          /* stream switching */
-          mousewheel={true}
-          keyboard={{ enabled: true }}
+          /* slide switching modules config */
+          modules={[Keyboard, Navigation, Mousewheel]}
+          keyboard
           navigation={{ prevEl: '#prev-stream', nextEl: '#next-stream' }}
+          mousewheel={{ forceToAxis: true, thresholdTime: 750, thresholdDelta: 75 }}
           /* event handlers */
-          onSwiper={(swiper) => setSwiper(swiper)}
-          onScroll={onStreamChange}
-          onKeyPress={onStreamChange}
-          onSlideChange={onStreamChange}
-          onBeforeResize={(swiper) => swiper.update(swiper)}
-          onBeforeTransitionStart={(swiper) => swiper.keyboard.disable()}
+          onScroll={updateSwipeDirection} // mousewheel events
+          onKeyPress={updateSwipeDirection} // keyboard events
+          onSlideChange={updateSwipeDirection} // swipe events
+          onSlideChangeTransitionStart={(swiper) => swiper.disable()}
           onSlideChangeTransitionEnd={(swiper) => {
-            swiper.keyboard.enable();
-            swiper.update();
-            swiperHeartbeat(swiper);
+            swiper.enable();
+            updateStreams();
           }}
+          onTouchEnd={updateStreams} // mobile touch swipes
         >
           {players.map((player, i) => (
             <SwiperSlide key={`player-${i + 1}`}>
-              <Player
-                {...player}
-                id={i + 1}
-                toggleMetadata={toggleMetadata}
-                isPlayerActive={(playerVideo) =>
-                  player.type === PLAYER_TYPES.ACTIVE && isPlayerInViewport(playerVideo)
-                }
-              />
+              {({ isVisible }) => (
+                <Player
+                  {...player}
+                  blur
+                  id={i + 1}
+                  isPlayerVisible={isVisible}
+                  isPlayerActive={player.type === PLAYER_TYPES.ACTIVE}
+                  toggleMetadata={toggleMetadata}
+                  updateSwipeDirection={(dir) => updateSwipeDirection(null, dir)}
+                />
+              )}
             </SwiperSlide>
           ))}
         </Swiper>

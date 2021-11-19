@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { v4 as uuid } from 'uuid';
 
 const {
   isPlayerSupported,
@@ -12,7 +13,7 @@ const { ERROR } = PlayerEventType;
 const usePlayer = (id) => {
   const player = useRef(null);
   const video = useRef();
-  const pid = useRef(id);
+  const pid = useRef(`${id} (${uuid().slice(-3)})`);
 
   const {
     muted,
@@ -77,7 +78,8 @@ const usePlayer = (id) => {
 
   const load = useCallback(
     (playbackUrl) => {
-      if (!player.current || player.current.core.isLoaded) create();
+      if (!player.current) create();
+      // if (!player.current || player.current.core.isLoaded) create();
       player.current.load(playbackUrl);
     },
     [create]
