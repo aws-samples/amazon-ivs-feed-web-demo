@@ -4,21 +4,26 @@ import { Navigation, Keyboard, Mousewheel } from 'swiper';
 
 import Player from './Player';
 import useStream from '../../contexts/Stream/useStream';
+import useMobileBreakpoint from '../../contexts/MobileBreakpoint/useMobileBreakpoint';
+
 import config from '../../config';
+import { isMobileOS } from './utils';
 
 import './Feed.css';
 
 const PLAYER_TYPES = Object.freeze({ ACTIVE: 'ACTIVE', NEXT: 'NEXT', PREV: 'PREV' });
 const { SWIPE_DURATION } = config;
 
-const Feed = ({ toggleMetadata }) => {
+const Feed = ({ toggleMetadata, metadataVisible }) => {
   const { activeStream, throttledGotoNextStream, throttledGotoPrevStream } = useStream();
-  const [players, setPlayers] = useState([
+  const { isMobileView } = useMobileBreakpoint();
+  const swipeDirection = useRef(null);
+
+  const [playersData, setPlayersData] = useState([
     { playbackUrl: '', type: PLAYER_TYPES.ACTIVE },
     { playbackUrl: '', type: PLAYER_TYPES.NEXT },
     { playbackUrl: '', type: PLAYER_TYPES.PREV }
   ]);
-  const swipeDirection = useRef(null);
 
   useEffect(() => {
     if (activeStream) {
@@ -28,15 +33,15 @@ const Feed = ({ toggleMetadata }) => {
         activeStream.prev
       ].map(({ data }) => data.stream.playbackUrl);
 
-      let newPlayers = [...players];
+      let newPlayersData = [...playersData];
 
       if (swipeDirection.current === 'next') {
-        newPlayers.unshift(newPlayers.pop()); // shift players down
+        newPlayersData.unshift(newPlayersData.pop()); // shift playersData down
       } else if (swipeDirection.current === 'prev') {
-        newPlayers.push(newPlayers.shift()); // shift players up
+        newPlayersData.push(newPlayersData.shift()); // shift playersData up
       }
 
-      newPlayers = newPlayers.map((player) => {
+      newPlayersData = newPlayersData.map((player) => {
         switch (player.type) {
           case PLAYER_TYPES.ACTIVE:
             return { ...player, playbackUrl: activePlaybackUrl };
@@ -49,13 +54,12 @@ const Feed = ({ toggleMetadata }) => {
         }
       });
 
-      setPlayers(newPlayers);
       swipeDirection.current = null;
+      setPlayersData(newPlayersData);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeStream]);
+  }, [activeStream]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const setSwipeDirection = (swiper, event) => {
+  const gotoStream = (swiper, event) => {
     if (!swipeDirection.current) {
       if (
         (swiper && swiper.swipeDirection === 'next') || // Touch: swipe up
@@ -65,6 +69,7 @@ const Feed = ({ toggleMetadata }) => {
         event === 'next' // Other: direct swipe direction set (i.e. next nav. button)
       ) {
         swipeDirection.current = 'next';
+        throttledGotoNextStream();
       } else if (
         (swiper && swiper.swipeDirection === 'prev') || // Touch: swipe down
         event?.wheelDeltaY > 0 || // MouseWheel: vertical scroll down
@@ -73,13 +78,9 @@ const Feed = ({ toggleMetadata }) => {
         event === 'prev' // Other: direct swipe direction set (i.e. prev nav. button)
       ) {
         swipeDirection.current = 'prev';
+        throttledGotoPrevStream();
       }
     } else swipeDirection.current = null;
-  };
-
-  const updateStreams = () => {
-    if (swipeDirection.current === 'next') throttledGotoNextStream();
-    if (swipeDirection.current === 'prev') throttledGotoPrevStream();
   };
 
   if (!window.IVSPlayer.isPlayerSupported) {
@@ -89,51 +90,46 @@ const Feed = ({ toggleMetadata }) => {
 
   return (
     !!activeStream &&
-    players.every(({ playbackUrl }) => !!playbackUrl) && (
+    playersData.every(({ playbackUrl }) => !!playbackUrl) && (
       <div className="feed-content">
         <Swiper
           /* swiper config */
           loop
-          nested
-          autoHeight
           watchSlidesProgress
-          updateOnWindowResize
-          simulateTouch={false}
           direction={'vertical'}
+          simulateTouch={false}
           speed={SWIPE_DURATION}
           preventInteractionOnTransition
           /* slide switching modules config */
           modules={[Keyboard, Navigation, Mousewheel]}
           keyboard
           navigation={{ prevEl: '#prev-stream', nextEl: '#next-stream' }}
-          mousewheel={{ forceToAxis: true, thresholdTime: 750, thresholdDelta: 75 }}
+          mousewheel={{ forceToAxis: true, thresholdTime: 500, thresholdDelta: 50 }}
           /* event handlers */
-          onScroll={setSwipeDirection} // mousewheel events
-          onKeyPress={setSwipeDirection} // keyboard events
-          onSlideChange={setSwipeDirection} // swipe events
-          onSlideChangeTransitionStart={(swiper) => swiper.disable()}
-          onSlideChangeTransitionEnd={(swiper) => {
-            swiper.enable();
-            updateStreams();
-            setTimeout(() => {
-              swiper.update();
-              swiper.slideReset();
-              swiper.slideToClosest();
-            });
+          onTouchEnd={gotoStream} // swiping events
+          onKeyPress={gotoStream} // keyboard events
+          onScroll={gotoStream} // mousewheel events
+          onResize={(swiper) => {
+            if (metadataVisible && isMobileView) {
+              swiper.disable();
+            } else swiper.enable();
+            swiper.navigation.init();
           }}
-          onTouchEnd={updateStreams} // mobile touch swipes
+          onSlideChangeTransitionStart={(swiper) => swiper.disable()}
+          onSlideChangeTransitionEnd={(swiper) => swiper.enable()}
         >
-          {players.map((player, i) => (
+          {playersData.map((player, i) => (
             <SwiperSlide key={`player-${i + 1}`}>
-              {({ isVisible }) => (
+              {({ isActive, isVisible }) => (
                 <Player
-                  {...player}
                   id={i + 1}
-                  blur={{ enabled: true, stillFrame: true }}
+                  {...player}
+                  isPlayerActive={isActive}
                   isPlayerVisible={isVisible}
-                  isPlayerActive={player.type === PLAYER_TYPES.ACTIVE}
                   toggleMetadata={toggleMetadata}
-                  setSwipeDirection={(dir) => setSwipeDirection(null, dir)}
+                  metadataVisible={metadataVisible}
+                  gotoStream={(dir) => gotoStream(null, dir)}
+                  blur={{ enabled: true, stillFrame: isMobileOS() }}
                 />
               )}
             </SwiperSlide>

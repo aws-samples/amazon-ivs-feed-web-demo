@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useReducer } from 'react';
 
 import StreamContext from './context';
-import CircularLinkedList from '../../utils/CircularLinkedList';
+import CircularLinkedList from './CircularLinkedList';
 import useThrottledCallback from '../../components/hooks/useThrottledCallback';
 
 import config from '../../config';

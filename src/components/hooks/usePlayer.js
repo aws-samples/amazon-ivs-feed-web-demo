@@ -27,6 +27,12 @@ const usePlayer = (id) => {
     resetControls
   } = usePlayerControls(player);
 
+  // Handle case when autoplay with sound is blocked by browser
+  useEffect(() => {
+    if (loading || !player.current) return;
+    toggleMute(player.current.isMuted());
+  }, [loading, toggleMute]);
+
   // Generic PlayerState event listener
   const onStateChange = useCallback(() => {
     const newState = player.current.getState();
@@ -79,21 +85,15 @@ const usePlayer = (id) => {
   const load = useCallback(
     (playbackUrl) => {
       if (!player.current) create();
-      // if (!player.current || player.current.core.isLoaded) create();
       player.current.load(playbackUrl);
+      play();
     },
-    [create]
+    [create, play]
   );
 
   const log = (...messages) => {
     console.log(`Player ${pid.current}:`, ...messages);
   };
-
-  // Handle case when autoplay with sound is blocked by browser
-  useEffect(() => {
-    if (loading || !player.current) return;
-    toggleMute(player.current.isMuted());
-  }, [loading, toggleMute]);
 
   return {
     player: player.current,
