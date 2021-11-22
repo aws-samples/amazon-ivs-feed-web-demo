@@ -15,9 +15,10 @@ const PLAYER_TYPES = Object.freeze({ ACTIVE: 'ACTIVE', NEXT: 'NEXT', PREV: 'PREV
 const { SWIPE_DURATION } = config;
 
 const Feed = ({ toggleMetadata, metadataVisible }) => {
-  const { activeStream, throttledGotoNextStream, throttledGotoPrevStream } = useStream();
+  const { activeStream, direction, throttledGotoNextStream, throttledGotoPrevStream } =
+    useStream();
   const { isMobileView } = useMobileBreakpoint();
-  const swipeDirection = useRef(null);
+  const [swiper, setSwiper] = useState();
 
   const [playersData, setPlayersData] = useState([
     { playbackUrl: '', type: PLAYER_TYPES.ACTIVE },
@@ -35,9 +36,9 @@ const Feed = ({ toggleMetadata, metadataVisible }) => {
 
       let newPlayersData = [...playersData];
 
-      if (swipeDirection.current === 'next') {
+      if (direction === 'next') {
         newPlayersData.unshift(newPlayersData.pop()); // shift playersData down
-      } else if (swipeDirection.current === 'prev') {
+      } else if (direction === 'prev') {
         newPlayersData.push(newPlayersData.shift()); // shift playersData up
       }
 
@@ -54,34 +55,35 @@ const Feed = ({ toggleMetadata, metadataVisible }) => {
         }
       });
 
-      swipeDirection.current = null;
       setPlayersData(newPlayersData);
     }
   }, [activeStream]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const gotoStream = (swiper, event) => {
-    if (!swipeDirection.current) {
-      if (
-        (swiper && swiper.swipeDirection === 'next') || // Touch: swipe up
-        event?.wheelDeltaY < 0 || // MouseWheel: vertical scroll up
-        event === 40 || // Keyboard: ArrowDown (keyCode 40)
-        event === 34 || // Keyboard: PageDown (keyCode 34)
-        event === 'next' // Other: direct swipe direction set (i.e. next nav. button)
-      ) {
-        swipeDirection.current = 'next';
-        throttledGotoNextStream();
-      } else if (
-        (swiper && swiper.swipeDirection === 'prev') || // Touch: swipe down
-        event?.wheelDeltaY > 0 || // MouseWheel: vertical scroll down
-        event === 38 || // Keyboard: ArrowUp (keyCode 38)
-        event === 33 || // Keyboard: PageUp (keyCode 33)
-        event === 'prev' // Other: direct swipe direction set (i.e. prev nav. button)
-      ) {
-        swipeDirection.current = 'prev';
-        throttledGotoPrevStream();
+  const currentActiveIndex = useRef(null);
+  const gotoStream = (swiper, event) =>
+    setTimeout(() => {
+      const slideChanged = currentActiveIndex.current !== swiper.activeIndex;
+      if (slideChanged) {
+        if (
+          (swiper && swiper.swipeDirection === 'next') || // Touch: swipe up
+          event?.wheelDeltaY < 0 || // MouseWheel: vertical scroll up
+          event === 40 || // Keyboard: ArrowDown (keyCode 40)
+          event === 34 || // Keyboard: PageDown (keyCode 34)
+          event === 'next' // Other: directly set swipe direction (i.e. next nav. button)
+        ) {
+          throttledGotoNextStream();
+        } else if (
+          (swiper && swiper.swipeDirection === 'prev') || // Touch: swipe down
+          event?.wheelDeltaY > 0 || // MouseWheel: vertical scroll down
+          event === 38 || // Keyboard: ArrowUp (keyCode 38)
+          event === 33 || // Keyboard: PageUp (keyCode 33)
+          event === 'prev' // Other: directly set swipe direction (i.e. prev nav. button)
+        ) {
+          throttledGotoPrevStream();
+        }
+        currentActiveIndex.current = swiper.activeIndex;
       }
-    } else swipeDirection.current = null;
-  };
+    });
 
   if (!window.IVSPlayer.isPlayerSupported) {
     console.warn('The current browser does not support the Amazon IVS player.');
@@ -106,6 +108,10 @@ const Feed = ({ toggleMetadata, metadataVisible }) => {
           navigation={{ prevEl: '#prev-stream', nextEl: '#next-stream' }}
           mousewheel={{ forceToAxis: true, thresholdTime: 500, thresholdDelta: 50 }}
           /* event handlers */
+          onSwiper={(swiper) => {
+            currentActiveIndex.current = swiper.activeIndex;
+            setSwiper(swiper);
+          }}
           onTouchEnd={gotoStream} // swiping events
           onKeyPress={gotoStream} // keyboard events
           onScroll={gotoStream} // mousewheel events
@@ -128,7 +134,7 @@ const Feed = ({ toggleMetadata, metadataVisible }) => {
                   isPlayerVisible={isVisible}
                   toggleMetadata={toggleMetadata}
                   metadataVisible={metadataVisible}
-                  gotoStream={(dir) => gotoStream(null, dir)}
+                  gotoStream={(dir) => gotoStream(swiper, dir)}
                   blur={{ enabled: true, stillFrame: isMobileOS() }}
                 />
               )}

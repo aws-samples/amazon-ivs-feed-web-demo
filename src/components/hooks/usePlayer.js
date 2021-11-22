@@ -86,9 +86,10 @@ const usePlayer = (id) => {
     (playbackUrl) => {
       if (!player.current) create();
       player.current.load(playbackUrl);
-      play();
+      // play();
     },
-    [create, play]
+    [create]
+    // [create, play]
   );
 
   const log = (...messages) => {

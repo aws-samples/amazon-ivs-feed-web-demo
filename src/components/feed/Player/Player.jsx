@@ -39,8 +39,8 @@ const Player = ({
     loading,
     toggleMute,
     togglePlayPause,
-    // play,
-    // pause,
+    play,
+    pause,
     log
   } = usePlayer(id);
   const { isMobileView } = useMobileBreakpoint();
@@ -51,7 +51,7 @@ const Player = ({
   useEffect(() => {
     isActive.current = isPlayerActive;
     isVisible.current = isPlayerVisible;
-    // isActive.current ? play() : pause();
+    isActive.current ? play() : pause();
 
     if (!blur.stillFrame && isPlayerActive) {
       attachBlur(canvas.current);
