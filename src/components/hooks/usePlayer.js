@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { v4 as uuid } from 'uuid';
 
+import config from '../../config';
+
 const {
   isPlayerSupported,
   create: createMediaPlayer,
@@ -86,10 +88,9 @@ const usePlayer = (id) => {
     (playbackUrl) => {
       if (!player.current) create();
       player.current.load(playbackUrl);
-      // play();
+      if (config.PLAY_IN_BACKGROUND) play();
     },
-    [create]
-    // [create, play]
+    [create, play]
   );
 
   const log = (...messages) => {

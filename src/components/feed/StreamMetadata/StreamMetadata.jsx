@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { getTimeSince } from '../utils';
+import { getTimeSince } from '../../../utils';
 import { Copy } from '../../../assets/icons';
 
 import useStream from '../../../contexts/Stream/useStream';

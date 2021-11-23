@@ -7,7 +7,6 @@ import useStream from '../../contexts/Stream/useStream';
 import useMobileBreakpoint from '../../contexts/MobileBreakpoint/useMobileBreakpoint';
 
 import config from '../../config';
-import { isMobileOS } from './utils';
 
 import './Feed.css';
 
@@ -15,15 +14,21 @@ const PLAYER_TYPES = Object.freeze({ ACTIVE: 'ACTIVE', NEXT: 'NEXT', PREV: 'PREV
 const { SWIPE_DURATION } = config;
 
 const Feed = ({ toggleMetadata, metadataVisible }) => {
+  const [swiper, setSwiper] = useState(null);
+  const { isMobileView } = useMobileBreakpoint();
   const { activeStream, direction, throttledGotoNextStream, throttledGotoPrevStream } =
     useStream();
-  const { isMobileView } = useMobileBreakpoint();
-  const [swiper, setSwiper] = useState();
 
+  /**
+   * A mapping to keep track of each player's playbackUrl and type.
+   *
+   * Player index position will not change, but their urls and types
+   * may change when a transition occurs.
+   */
   const [playersData, setPlayersData] = useState([
-    { playbackUrl: '', type: PLAYER_TYPES.ACTIVE },
-    { playbackUrl: '', type: PLAYER_TYPES.NEXT },
-    { playbackUrl: '', type: PLAYER_TYPES.PREV }
+    /* [0] P1 */ { playbackUrl: '', type: PLAYER_TYPES.ACTIVE },
+    /* [1] P2 */ { playbackUrl: '', type: PLAYER_TYPES.NEXT },
+    /* [2] P3 */ { playbackUrl: '', type: PLAYER_TYPES.PREV }
   ]);
 
   useEffect(() => {
@@ -60,9 +65,16 @@ const Feed = ({ toggleMetadata, metadataVisible }) => {
   }, [activeStream]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const currentActiveIndex = useRef(null);
-  const gotoStream = (swiper, event) =>
+  const gotoStream = (swiper, event) => {
     setTimeout(() => {
       const slideChanged = currentActiveIndex.current !== swiper.activeIndex;
+
+      console.log('gotoStream', {
+        activeIndex: swiper.activeIndex,
+        currentActiveIndex: currentActiveIndex.current,
+        slideChanged
+      });
+
       if (slideChanged) {
         if (
           (swiper && swiper.swipeDirection === 'next') || // Touch: swipe up
@@ -72,6 +84,7 @@ const Feed = ({ toggleMetadata, metadataVisible }) => {
           event === 'next' // Other: directly set swipe direction (i.e. next nav. button)
         ) {
           throttledGotoNextStream();
+          currentActiveIndex.current = swiper.activeIndex;
         } else if (
           (swiper && swiper.swipeDirection === 'prev') || // Touch: swipe down
           event?.wheelDeltaY > 0 || // MouseWheel: vertical scroll down
@@ -80,10 +93,11 @@ const Feed = ({ toggleMetadata, metadataVisible }) => {
           event === 'prev' // Other: directly set swipe direction (i.e. prev nav. button)
         ) {
           throttledGotoPrevStream();
+          currentActiveIndex.current = swiper.activeIndex;
         }
-        currentActiveIndex.current = swiper.activeIndex;
       }
     });
+  };
 
   if (!window.IVSPlayer.isPlayerSupported) {
     console.warn('The current browser does not support the Amazon IVS player.');
@@ -108,7 +122,7 @@ const Feed = ({ toggleMetadata, metadataVisible }) => {
           navigation={{ prevEl: '#prev-stream', nextEl: '#next-stream' }}
           mousewheel={{ forceToAxis: true, thresholdTime: 500, thresholdDelta: 50 }}
           /* event handlers */
-          onSwiper={(swiper) => {
+          onInit={(swiper) => {
             currentActiveIndex.current = swiper.activeIndex;
             setSwiper(swiper);
           }}
@@ -130,12 +144,12 @@ const Feed = ({ toggleMetadata, metadataVisible }) => {
                 <Player
                   id={i + 1}
                   {...player}
+                  swiper={swiper}
                   isPlayerActive={isActive}
                   isPlayerVisible={isVisible}
                   toggleMetadata={toggleMetadata}
                   metadataVisible={metadataVisible}
                   gotoStream={(dir) => gotoStream(swiper, dir)}
-                  blur={{ enabled: true, stillFrame: isMobileOS() }}
                 />
               )}
             </SwiperSlide>

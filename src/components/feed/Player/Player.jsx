@@ -8,27 +8,36 @@ import { Play } from '../../../assets/icons';
 
 import usePlayer from '../../hooks/usePlayer';
 import useMobileBreakpoint from '../../../contexts/MobileBreakpoint/useMobileBreakpoint';
-import { isCanvasBlank } from '../utils';
+import { isCanvasBlank, isMobileOS } from '../../../utils';
+import config from '../../../config';
 
 import './Player.css';
+
+const { BLUR, PLAY_IN_BACKGROUND } = config;
+const { READY, BUFFERING } = window.IVSPlayer.PlayerState;
 
 /**
  * Props:
  * @param {number} id   Player ID
  * @param {string} type 'ACTIVE' | 'NEXT' | 'PREV'
  * @param {string} playbackUrl stream URL to load into the player for playback
+ * @param {object} swiper Swiper instance
+ * @param {boolean} isPlayerActive true if the player is active (1 or 2 players could be active at the same time due to Swiper duplicates)
+ * @param {boolean} isPlayerVisible true if the player is currently visible in the viewport (only 1 active player can be visible at any time)
+ * @param {boolean} metadataVisible true if the metadata panel is expanded
  * @param {function toggleMetadata(): void} toggleMetadata toggles metadata panel in mobile view
+ * @param {function gotoStream(dir: string): void} gotoStream sets the active stream to the one corresponding to dir ('next' or 'prev')
  */
 const Player = ({
   id,
   type,
   playbackUrl,
+  swiper,
   isPlayerActive,
   isPlayerVisible,
-  toggleMetadata,
   metadataVisible,
-  gotoStream,
-  blur = { enabled: false, stillFrame: false }
+  toggleMetadata,
+  gotoStream
 }) => {
   const {
     pid,
@@ -41,6 +50,7 @@ const Player = ({
     togglePlayPause,
     play,
     pause,
+    player,
     log
   } = usePlayer(id);
   const { isMobileView } = useMobileBreakpoint();
@@ -51,71 +61,79 @@ const Player = ({
   useEffect(() => {
     isActive.current = isPlayerActive;
     isVisible.current = isPlayerVisible;
-    isActive.current ? play() : pause();
 
-    if (!blur.stillFrame && isPlayerActive) {
-      attachBlur(canvas.current);
+    isActive.current || PLAY_IN_BACKGROUND ? play() : pause();
+
+    if (!isVisible.current) toggleMute(true);
+
+    if (BLUR.ENABLED && !BLUR.STILL_FRAME && isActive.current) {
+      startBlur(canvas.current); // start continuous blur for the currently active player(s)
     }
   }, [isPlayerActive, isPlayerVisible]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const firstLoad = useRef(true);
   useEffect(() => {
     if (playbackUrl) {
-      if (!firstLoad.current && blur.enabled) {
-        // Clear the canvas since we're loading a new stream
-        setTimeout(() => {
-          canvas.current
-            .getContext('2d')
-            .clearRect(0, 0, canvas.current.width, canvas.current.height);
-          // Required for iOS to reset canvas
-          // canvas.current.width = canvas.current.width; // eslint-disable-line no-self-assign
-        });
-      }
-
-      load(playbackUrl); // Load new playbackUrl
-
-      if (blur.stillFrame) {
-        log('stillFrame blur');
-        attachBlur(canvas.current);
-      }
-      firstLoad.current = false;
+      load(playbackUrl);
+      if (BLUR.ENABLED && BLUR.STILL_FRAME) clearCanvas();
     }
   }, [playbackUrl]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (player && BLUR.ENABLED && BLUR.STILL_FRAME) {
+      const startBlurOnPlaying = () => startBlur(canvas.current);
+      const playerState = PLAY_IN_BACKGROUND ? READY : BUFFERING;
+      player.addEventListener(playerState, startBlurOnPlaying); // start still frame blur when this player starts playing
+      return () => player.removeEventListener(playerState, startBlurOnPlaying);
+    }
+  }, [player]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const clearCanvas = () => {
+    const context = canvas.current.getContext('2d');
+    context.clearRect(0, 0, canvas.current.width, canvas.current.height);
+    if (isMobileOS()) canvas.current.width = canvas.current.width; // eslint-disable-line no-self-assign
+  };
+
   const isBlurring = useRef(false);
-  const attachBlur = useCallback(
+  const startBlur = useCallback(
     (canvas) => {
-      if (canvas && blur.enabled && !isBlurring.current) {
-        const ctx = canvas.getContext('2d');
-        ctx.filter = 'blur(3px)';
+      if (canvas && BLUR.ENABLED && !isBlurring.current) {
+        clearCanvas();
         isBlurring.current = true;
+        const context = canvas.getContext('2d');
+        context.filter = 'blur(3px)';
 
         const draw = () => {
-          if (blur.stillFrame) {
-            if (!isCanvasBlank(canvas)) {
+          if (isBlurring.current) {
+            if (
+              (BLUR.STILL_FRAME && !isCanvasBlank(canvas)) ||
+              (!BLUR.STILL_FRAME && !isActive.current)
+            ) {
               isBlurring.current = false;
               return;
             }
-          } else if (!isActive.current && isBlurring.current) {
-            isBlurring.current = false;
-            return;
           }
 
-          ctx.drawImage(video.current, 0, 0, canvas.width, canvas.height);
-          requestAnimationFrame(isVisible.current ? draw : throttledDraw);
+          context.drawImage(video.current, 0, 0, canvas.width, canvas.height);
+          requestAnimationFrame(drawFn);
         };
-
         const throttledDraw = throttle(draw, 200, { leading: true });
-        requestAnimationFrame(draw);
+
+        const drawFn = BLUR.STILL_FRAME || !isVisible.current ? throttledDraw : draw;
+        requestAnimationFrame(drawFn);
       }
     },
     [isActive.current, isVisible.current] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const handleClickOnPlayer = () => {
+    console.log('handleClickOnPlayer');
     if (metadataVisible && isMobileView) {
+      console.log('handleClickOnPlayer - toggleMetadata');
       toggleMetadata();
-    } else togglePlayPause();
+    } else {
+      console.log('handleClickOnPlayer - togglePlayPause');
+      togglePlayPause();
+    }
   };
 
   return (
@@ -135,10 +153,15 @@ const Player = ({
 
         <Spinner loading={loading && !paused} />
         <button
+          type="button"
           className={`btn-play-pause ${isActive.current ? 'active' : ''}`}
           onClick={handleClickOnPlayer}
         >
-          {!loading && paused && isActive.current && <Play className="btn-play" />}
+          {!loading && paused && isActive.current && (
+            <Play
+              className={`btn-play ${metadataVisible && isMobileView ? 'underlay' : ''}`}
+            />
+          )}
         </button>
       </div>
     </div>

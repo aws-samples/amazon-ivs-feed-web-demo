@@ -55,12 +55,10 @@ const StreamProvider = ({ children }) => {
   }, []);
 
   const throttledGotoNextStream = useThrottledCallback(() => {
-    console.log('throttledGotoNextStream');
     state.activeStream && setActiveStream(state.activeStream.next, 'next');
   }, SWIPE_DURATION);
 
   const throttledGotoPrevStream = useThrottledCallback(() => {
-    console.log('throttledGotoPrevStream');
     state.activeStream && setActiveStream(state.activeStream.prev, 'prev');
   }, SWIPE_DURATION);
 
