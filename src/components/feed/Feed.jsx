@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react/swiper-react';
-import { Navigation, Keyboard, Mousewheel } from 'swiper';
+import { Navigation, Keyboard, Mousewheel, A11y } from 'swiper';
 
 import Player from './Player';
 import useStream from '../../contexts/Stream/useStream';
@@ -20,15 +20,15 @@ const Feed = ({ toggleMetadata, metadataVisible }) => {
     useStream();
 
   /**
-   * A mapping to keep track of each player's playbackUrl and type.
+   * A mapping to keep track of each player's playbackUrl and state.
    *
    * Player index position will not change, but their urls and types
    * may change when a transition occurs.
    */
   const [playersData, setPlayersData] = useState([
-    /* [0] P1 */ { playbackUrl: '', type: PLAYER_TYPES.ACTIVE },
-    /* [1] P2 */ { playbackUrl: '', type: PLAYER_TYPES.NEXT },
-    /* [2] P3 */ { playbackUrl: '', type: PLAYER_TYPES.PREV }
+    /* [0] P1 */ { playbackUrl: '', state: PLAYER_TYPES.ACTIVE },
+    /* [1] P2 */ { playbackUrl: '', state: PLAYER_TYPES.NEXT },
+    /* [2] P3 */ { playbackUrl: '', state: PLAYER_TYPES.PREV }
   ]);
 
   useEffect(() => {
@@ -48,7 +48,7 @@ const Feed = ({ toggleMetadata, metadataVisible }) => {
       }
 
       newPlayersData = newPlayersData.map((player) => {
-        switch (player.type) {
+        switch (player.state) {
           case PLAYER_TYPES.ACTIVE:
             return { ...player, playbackUrl: activePlaybackUrl };
           case PLAYER_TYPES.NEXT:
@@ -68,13 +68,6 @@ const Feed = ({ toggleMetadata, metadataVisible }) => {
   const gotoStream = (swiper, event) => {
     setTimeout(() => {
       const slideChanged = currentActiveIndex.current !== swiper.activeIndex;
-
-      console.log('gotoStream', {
-        activeIndex: swiper.activeIndex,
-        currentActiveIndex: currentActiveIndex.current,
-        slideChanged
-      });
-
       if (slideChanged) {
         if (
           (swiper && swiper.swipeDirection === 'next') || // Touch: swipe up
@@ -116,8 +109,9 @@ const Feed = ({ toggleMetadata, metadataVisible }) => {
           simulateTouch={false}
           speed={SWIPE_DURATION}
           preventInteractionOnTransition
-          /* slide switching modules config */
-          modules={[Keyboard, Navigation, Mousewheel]}
+          /* swiper modules config */
+          modules={[Keyboard, Navigation, Mousewheel, A11y]}
+          a11y
           keyboard
           navigation={{ prevEl: '#prev-stream', nextEl: '#next-stream' }}
           mousewheel={{ forceToAxis: true, thresholdTime: 500, thresholdDelta: 50 }}
@@ -133,7 +127,7 @@ const Feed = ({ toggleMetadata, metadataVisible }) => {
             if (metadataVisible && isMobileView) {
               swiper.disable();
             } else swiper.enable();
-            swiper.navigation.init();
+            swiper.navigation.init(); // reinitialize nav buttons when unhidden (mobile)
           }}
           onSlideChangeTransitionStart={(swiper) => swiper.disable()}
           onSlideChangeTransitionEnd={(swiper) => swiper.enable()}

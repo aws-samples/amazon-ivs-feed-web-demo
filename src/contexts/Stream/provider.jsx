@@ -11,7 +11,7 @@ const { SWIPE_DURATION } = config;
 const initialState = {
   streams: null, // Circular doubly linked list of stream nodes
   activeStream: null, // Reference to currently active stream node
-  direction: undefined // The direction in which the streams were transitioned ('next', 'prev' or 'undefined' for anything else)
+  direction: undefined // The direction in which the streams were last transitioned ('next', 'prev' or 'undefined' for anything else)
 };
 
 const actionTypes = {

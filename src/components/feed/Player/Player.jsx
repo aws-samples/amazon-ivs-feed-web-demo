@@ -19,7 +19,7 @@ const { READY, BUFFERING } = window.IVSPlayer.PlayerState;
 /**
  * Props:
  * @param {number} id   Player ID
- * @param {string} type 'ACTIVE' | 'NEXT' | 'PREV'
+ * @param {string} state 'ACTIVE' | 'NEXT' | 'PREV'
  * @param {string} playbackUrl stream URL to load into the player for playback
  * @param {object} swiper Swiper instance
  * @param {boolean} isPlayerActive true if the player is active (1 or 2 players could be active at the same time due to Swiper duplicates)
@@ -30,7 +30,7 @@ const { READY, BUFFERING } = window.IVSPlayer.PlayerState;
  */
 const Player = ({
   id,
-  type,
+  state,
   playbackUrl,
   swiper,
   isPlayerActive,
@@ -50,13 +50,19 @@ const Player = ({
     togglePlayPause,
     play,
     pause,
-    player,
-    log
+    player
   } = usePlayer(id);
   const { isMobileView } = useMobileBreakpoint();
   const isActive = useRef(isPlayerActive);
   const isVisible = useRef(isPlayerVisible);
   const canvas = useRef();
+
+  useEffect(() => {
+    if (playbackUrl) {
+      load(playbackUrl);
+      if (BLUR.ENABLED && BLUR.STILL_FRAME) clearCanvas();
+    }
+  }, [playbackUrl]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     isActive.current = isPlayerActive;
@@ -69,21 +75,21 @@ const Player = ({
     if (BLUR.ENABLED && !BLUR.STILL_FRAME && isActive.current) {
       startBlur(canvas.current); // start continuous blur for the currently active player(s)
     }
-  }, [isPlayerActive, isPlayerVisible]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    if (playbackUrl) {
-      load(playbackUrl);
-      if (BLUR.ENABLED && BLUR.STILL_FRAME) clearCanvas();
-    }
-  }, [playbackUrl]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!isActive.current) {
+      const lowestQuality = player?.getQualities().pop();
+      if (lowestQuality) {
+        player.setQuality(lowestQuality, true);
+      }
+    } else player.setAutoQualityMode(true);
+  }, [isPlayerActive, isPlayerVisible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (player && BLUR.ENABLED && BLUR.STILL_FRAME) {
       const startBlurOnPlaying = () => startBlur(canvas.current);
-      const playerState = PLAY_IN_BACKGROUND ? READY : BUFFERING;
-      player.addEventListener(playerState, startBlurOnPlaying); // start still frame blur when this player starts playing
-      return () => player.removeEventListener(playerState, startBlurOnPlaying);
+      const playerStateEvent = PLAY_IN_BACKGROUND ? READY : BUFFERING;
+      player.addEventListener(playerStateEvent, startBlurOnPlaying); // start still frame blur when this player starts playing
+      return () => player.removeEventListener(playerStateEvent, startBlurOnPlaying);
     }
   }, [player]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -125,19 +131,14 @@ const Player = ({
     [isActive.current, isVisible.current] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
-  const handleClickOnPlayer = () => {
-    console.log('handleClickOnPlayer');
+  const handleClickOnPlayer = (e) => {
     if (metadataVisible && isMobileView) {
-      console.log('handleClickOnPlayer - toggleMetadata');
       toggleMetadata();
-    } else {
-      console.log('handleClickOnPlayer - togglePlayPause');
-      togglePlayPause();
-    }
+    } else togglePlayPause();
   };
 
   return (
-    <div id={`${type.toLowerCase()}-player-${pid}`} className="player-container">
+    <div id={`${state.toLowerCase()}-player-${pid}`} className="player-container">
       <PlayerControls
         muted={muted}
         toggleMute={toggleMute}
@@ -148,14 +149,14 @@ const Player = ({
       <div
         className={`player-video ${metadataVisible && isMobileView ? 'underlay' : ''}`}
       >
-        <video id={`${type.toLowerCase()}-video`} ref={video} playsInline muted />
-        <canvas id={`${type.toLowerCase()}-blur`} ref={canvas} />
+        <video id={`${state.toLowerCase()}-video`} ref={video} playsInline muted />
+        <canvas id={`${state.toLowerCase()}-blur`} ref={canvas} />
 
         <Spinner loading={loading && !paused} />
         <button
           type="button"
-          className={`btn-play-pause ${isActive.current ? 'active' : ''}`}
           onClick={handleClickOnPlayer}
+          className={`btn-play-pause ${isActive.current ? 'active' : ''}`}
         >
           {!loading && paused && isActive.current && (
             <Play
