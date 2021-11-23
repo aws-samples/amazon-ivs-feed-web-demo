@@ -88,6 +88,14 @@
   position: relative;
 }
 
+.stream-meta-url {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100%;
+  margin-right: 16px;
+}
+
 .stream-meta-sharelink svg {
   cursor: pointer;
 }
