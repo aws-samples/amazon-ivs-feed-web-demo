@@ -6,7 +6,7 @@
         "channelArn": "arn:aws:ivs:us-west-2:XXXXXXXXXXXX:channel/XXXXXXXXXXXX",
         "health": "HEALTHY",
         "playbackUrl": "https://fcc3ddae59ed.us-west-2.playback.live-video.net/api/video/v1/us-west-2.893648527354.channel.YtnrVcQbttF0.m3u8",
-        "startTime": "2021-06-17T23:17:53Z",
+        "startTime": "2021-11-24T17:49:12.527Z",
         "state": "LIVE",
         "viewerCount": 1
       },
@@ -26,7 +26,7 @@
         "channelArn": "arn:aws:ivs:us-west-2:XXXXXXXXXXXX:channel/XXXXXXXXXXXX",
         "health": "HEALTHY",
         "playbackUrl": "https://fcc3ddae59ed.us-west-2.playback.live-video.net/api/video/v1/us-west-2.893648527354.channel.DmumNckWFTqz.m3u8",
-        "startTime": "2021-06-17T22:10:51Z",
+        "startTime": "2021-11-24T10:49:12.527Z",
         "state": "LIVE",
         "viewerCount": 1
       },
@@ -46,7 +46,7 @@
         "channelArn": "arn:aws:ivs:us-west-2:XXXXXXXXXXXX:channel/XXXXXXXXXXXX",
         "health": "HEALTHY",
         "playbackUrl": "https://4c62a87c1810.us-west-2.playback.live-video.net/api/video/v1/us-west-2.049054135175.channel.LaSuL3bHBRR7.m3u8",
-        "startTime": "2021-06-17T22:05:13Z",
+        "startTime": "2021-11-24T12:49:12.527Z",
         "state": "LIVE",
         "viewerCount": 1
       },
@@ -66,7 +66,7 @@
         "channelArn": "arn:aws:ivs:us-west-2:XXXXXXXXXXXX:channel/XXXXXXXXXXXX",
         "health": "HEALTHY",
         "playbackUrl": "https://4c62a87c1810.us-west-2.playback.live-video.net/api/video/v1/us-west-2.049054135175.channel.WP4bWqiALo67.m3u8",
-        "startTime": "2021-06-17T22:05:13Z",
+        "startTime": "2021-11-24T15:49:12.527Z",
         "state": "LIVE",
         "viewerCount": 1
       },
@@ -86,7 +86,7 @@
         "channelArn": "arn:aws:ivs:us-west-2:XXXXXXXXXXXX:channel/XXXXXXXXXXXX",
         "health": "HEALTHY",
         "playbackUrl": "https://4c62a87c1810.us-west-2.playback.live-video.net/api/video/v1/us-west-2.049054135175.channel.iNMK0w9JnUkC.m3u8",
-        "startTime": "2021-06-17T22:05:13Z",
+        "startTime": "2021-11-24T11:49:12.527Z",
         "state": "LIVE",
         "viewerCount": 1
       },
@@ -106,7 +106,7 @@
         "channelArn": "arn:aws:ivs:us-west-2:XXXXXXXXXXXX:channel/XXXXXXXXXXXX",
         "health": "HEALTHY",
         "playbackUrl": "https://4c62a87c1810.us-west-2.playback.live-video.net/api/video/v1/us-west-2.049054135175.channel.FMaC7IMoyDEA.m3u8",
-        "startTime": "2021-06-17T22:05:13Z",
+        "startTime": "2021-11-24T18:49:12.527Z",
         "state": "LIVE",
         "viewerCount": 1
       },
