@@ -1,31 +1,44 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import Button from '../../../common/Button';
 import Like from '../../Like';
 
-import useMobileBreakpoint from '../../../../contexts/MobileBreakpoint/useMobileBreakpoint';
+import config from '../../../../config';
 
 import './PlayerControls.css';
 
 const PlayerControls = ({
   muted,
+  hidden,
   toggleMute,
   gotoStream,
   toggleMetadata,
-  metadataVisible
+  metadataVisible,
+  isPlayerVisible
 }) => {
-  const { isMobileView } = useMobileBreakpoint();
+  const nextEl = useRef();
+  const prevEl = useRef();
+
+  useEffect(() => {
+    if (isPlayerVisible) {
+      const activeElemId = document.activeElement.id;
+      setTimeout(() => {
+        if (activeElemId === 'next-stream') nextEl.current.focus();
+        if (activeElemId === 'prev-stream') prevEl.current.focus();
+      }, config.SWIPE_DURATION);
+    }
+  }, [isPlayerVisible]);
 
   return (
-    (!metadataVisible || !isMobileView) && (
+    !hidden && (
       <div className="player-buttons">
         <Like />
         <Button onClick={() => toggleMute()}>{muted ? 'VolumeOff' : 'VolumeUp'}</Button>
         <hr className="divider" />
-        <Button id="prev-stream" onClick={() => gotoStream('prev')}>
+        <Button ref={prevEl} id="prev-stream" onClick={() => gotoStream('prev')}>
           ChevronUp
         </Button>
-        <Button id="next-stream" onClick={() => gotoStream('next')}>
+        <Button ref={nextEl} id="next-stream" onClick={() => gotoStream('next')}>
           ChevronDown
         </Button>
         <span className="metadata-toggle">

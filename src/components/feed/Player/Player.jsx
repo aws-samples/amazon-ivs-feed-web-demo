@@ -73,9 +73,10 @@ const Player = ({
     if (!isVisible.current) toggleMute(true);
 
     if (BLUR.ENABLED && !BLUR.STILL_FRAME && isActive.current) {
-      startBlur(canvas.current); // start continuous blur for the currently active player(s)
+      startBlur(canvas.current); // Start continuous blur for the currently active player(s)
     }
 
+    // Switch player to lowest quality if it's inactive, or auto quality if it's active
     if (!isActive.current) {
       const lowestQuality = player?.getQualities().pop();
       if (lowestQuality) {
@@ -88,7 +89,7 @@ const Player = ({
     if (player && BLUR.ENABLED && BLUR.STILL_FRAME) {
       const startBlurOnPlaying = () => startBlur(canvas.current);
       const playerStateEvent = PLAY_IN_BACKGROUND ? READY : BUFFERING;
-      player.addEventListener(playerStateEvent, startBlurOnPlaying); // start still frame blur when this player starts playing
+      player.addEventListener(playerStateEvent, startBlurOnPlaying); // Start still frame blur when this player starts playing
       return () => player.removeEventListener(playerStateEvent, startBlurOnPlaying);
     }
   }, [player]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -138,16 +139,13 @@ const Player = ({
   };
 
   return (
-    <div id={`${state.toLowerCase()}-player-${pid}`} className="player-container">
-      <PlayerControls
-        muted={muted}
-        toggleMute={toggleMute}
-        gotoStream={gotoStream}
-        toggleMetadata={toggleMetadata}
-        metadataVisible={metadataVisible}
-      />
+    <div
+      className="player-container"
+      inert={!isVisible.current ? '' : null}
+      id={`${state.toLowerCase()}-player-${pid}`}
+    >
       <div
-        className={`player-video ${metadataVisible && isMobileView ? 'underlay' : ''}`}
+        className={`player-video ${isMobileView && metadataVisible ? 'underlay' : ''}`}
       >
         <video id={`${state.toLowerCase()}-video`} ref={video} playsInline muted />
         <canvas id={`${state.toLowerCase()}-blur`} ref={canvas} />
@@ -156,15 +154,25 @@ const Player = ({
         <button
           type="button"
           onClick={handleClickOnPlayer}
+          aria-label={paused ? 'Play stream' : 'Pause stream'}
           className={`btn-play-pause ${isActive.current ? 'active' : ''}`}
         >
           {!loading && paused && isActive.current && (
             <Play
-              className={`btn-play ${metadataVisible && isMobileView ? 'underlay' : ''}`}
+              className={`btn-play ${isMobileView && metadataVisible ? 'underlay' : ''}`}
             />
           )}
         </button>
       </div>
+      <PlayerControls
+        muted={muted}
+        toggleMute={toggleMute}
+        gotoStream={gotoStream}
+        toggleMetadata={toggleMetadata}
+        metadataVisible={metadataVisible}
+        isPlayerVisible={isPlayerVisible}
+        hidden={isMobileView && metadataVisible}
+      />
     </div>
   );
 };

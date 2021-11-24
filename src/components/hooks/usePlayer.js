@@ -39,7 +39,7 @@ const usePlayer = (id) => {
   const onStateChange = useCallback(() => {
     const newState = player.current.getState();
     setLoading(newState !== PLAYING);
-    console.log(`Player ${pid.current} State - ${newState}`);
+    // console.log(`Player ${pid.current} State - ${newState}`);
   }, [setLoading]);
 
   // Generic PlayerEventType event listener

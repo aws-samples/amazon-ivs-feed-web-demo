@@ -15,13 +15,6 @@ class Node {
     this.next = null; // pointer to the next node
     this.prev = null; // pointer to the prev node
   }
-
-  /**
-   * Helper function to console.log the Node data
-   */
-  print() {
-    console.log(this.data);
-  }
 }
 
 /**
@@ -167,38 +160,5 @@ export default class CircularLinkedList {
     nodeToUpdate.data = newData;
 
     return nodeToUpdate;
-  }
-
-  map(callback) {
-    if (!this.size) {
-      console.warn('Linked List is empty!');
-      return;
-    }
-
-    const result = [];
-    let currentNode = this.head;
-    do {
-      result.push(callback(currentNode.data));
-      currentNode = currentNode.next;
-    } while (!this.compare(currentNode, this.head));
-
-    return result;
-  }
-
-  /**
-   * Helper function to print each Node from the Linked List
-   * @param {Node} [node] starting Node
-   * @param {number} [size] number of Nodes to print starting from 'node'
-   * @returns
-   */
-  print(node = this.head, count = this.size) {
-    if (count <= 0) {
-      console.log('Head:', this.head?.data);
-      console.log('Count:', this.size);
-      return;
-    }
-
-    node.print();
-    this.print(node.next, --count);
   }
 }

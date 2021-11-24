@@ -91,7 +91,7 @@ const StreamMetadata = ({ toggleMetadata }) => {
           Share this live stream
           <div className="stream-meta-sharelink">
             <span className="stream-meta-url">{currentURL}</span>
-            <button onClick={() => copyText(currentURL)}>
+            <button aria-label="Share" onClick={() => copyText(currentURL)}>
               <Copy />
             </button>
           </div>

@@ -7,6 +7,7 @@ import StreamProvider from './contexts/Stream/provider';
 import MobileBreakpointProvider from './contexts/MobileBreakpoint/provider';
 import { BrowserRouter as Router, Route, Redirect } from 'react-router-dom';
 
+import 'wicg-inert';
 import './index.css';
 
 ReactDOM.render(

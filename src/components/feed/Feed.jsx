@@ -111,24 +111,28 @@ const Feed = ({ toggleMetadata, metadataVisible }) => {
           preventInteractionOnTransition
           /* swiper modules config */
           modules={[Keyboard, Navigation, Mousewheel, A11y]}
-          a11y
           keyboard
           navigation={{ prevEl: '#prev-stream', nextEl: '#next-stream' }}
           mousewheel={{ forceToAxis: true, thresholdTime: 500, thresholdDelta: 50 }}
+          a11y={{
+            nextSlideMessage: 'Next stream',
+            prevSlideMessage: 'Previous stream',
+            slideLabelMessage: 'Stream'
+          }}
           /* event handlers */
           onInit={(swiper) => {
             currentActiveIndex.current = swiper.activeIndex;
             setSwiper(swiper);
           }}
-          onTouchEnd={gotoStream} // swiping events
-          onKeyPress={gotoStream} // keyboard events
-          onScroll={gotoStream} // mousewheel events
           onResize={(swiper) => {
             if (metadataVisible && isMobileView) {
               swiper.disable();
             } else swiper.enable();
             swiper.navigation.init(); // reinitialize nav buttons when unhidden (mobile)
           }}
+          onTouchEnd={gotoStream} // swiping events
+          onKeyPress={gotoStream} // keyboard events
+          onScroll={gotoStream} // mousewheel events
           onSlideChangeTransitionStart={(swiper) => swiper.disable()}
           onSlideChangeTransitionEnd={(swiper) => swiper.enable()}
         >

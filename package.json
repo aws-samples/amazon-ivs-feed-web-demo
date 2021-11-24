@@ -14,7 +14,8 @@
     "react-router-dom": "^5.3.0",
     "react-scripts": "4.0.3",
     "swiper": "^7.3.0",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "wicg-inert": "^3.1.1"
   },
   "scripts": {
     "start": "react-scripts start",
