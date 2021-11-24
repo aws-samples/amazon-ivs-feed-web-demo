@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Heart from './Heart';
 
-import { getRandomColor } from '../utils';
+import { getRandomColor } from '../../../utils';
 import Button from '../../common/Button';
 import './Like.css';
 

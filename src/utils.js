@@ -44,17 +44,22 @@ const getTimeSince = (dateTime) => {
   return timeSince;
 };
 
-const hexToRgb = (hex) => {
-  if (hex) {
-    return hex
-      .replace(
-        /^#?([a-f\d])([a-f\d])([a-f\d])$/i,
-        (m, r, g, b) => `#${r + r + g + g + b + b}`
-      )
-      .substring(1)
-      .match(/.{2}/g)
-      .map((x) => parseInt(x, 16));
-  } else return '';
+const isMobileOS = () => {
+  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+  const isWindowsPhone = /windows phone/i.test(userAgent);
+  const isAndroid = /android/i.test(userAgent);
+  const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+
+  return isWindowsPhone || isAndroid || isIOS;
 };
 
-export { getRandomColor, getTimeSince, hexToRgb };
+const isCanvasBlank = (canvas) => {
+  const context = canvas.getContext('2d');
+  const pixelBuffer = new Uint32Array(
+    context.getImageData(0, 0, canvas.width, canvas.height).data.buffer
+  );
+  return !pixelBuffer.some((color) => color !== 0);
+};
+
+export { getRandomColor, getTimeSince, isMobileOS, isCanvasBlank };

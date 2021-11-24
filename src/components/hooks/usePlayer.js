@@ -1,83 +1,179 @@
-import { useEffect, useState, useRef } from 'react';
-import 'context-filter-polyfill';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { v4 as uuid } from 'uuid';
 
-const { isPlayerSupported, create, PlayerState, PlayerEventType } = window.IVSPlayer;
+import config from '../../config';
 
-const usePlayer = (video) => {
+const {
+  isPlayerSupported,
+  create: createMediaPlayer,
+  PlayerState,
+  PlayerEventType
+} = window.IVSPlayer;
+const { ENDED, PLAYING, READY, BUFFERING } = PlayerState;
+const { ERROR } = PlayerEventType;
+
+const usePlayer = (id) => {
   const player = useRef(null);
-  const pid = useRef(video.current);
+  const video = useRef();
+  const pid = useRef(`${id} (${uuid().slice(-3)})`);
 
-  const [loading, setLoading] = useState(false);
-  const [muted, setMuted] = useState(true);
-  const [paused, setPaused] = useState(false);
+  const {
+    muted,
+    paused,
+    loading,
+    toggleMute,
+    play,
+    pause,
+    togglePlayPause,
+    setLoading,
+    resetControls
+  } = usePlayerControls(player);
 
-  // handle case when autoplay with sound is blocked by browser
+  // Handle case when autoplay with sound is blocked by browser
   useEffect(() => {
     if (loading || !player.current) return;
-    setMuted(player.current.isMuted());
-  }, [loading]);
+    toggleMute(player.current.isMuted());
+  }, [loading, toggleMute]);
 
-  useEffect(() => {
-    if (isPlayerSupported) {
-      const { ENDED, PLAYING, READY, BUFFERING } = PlayerState;
-      const { ERROR } = PlayerEventType;
+  // Generic PlayerState event listener
+  const onStateChange = useCallback(() => {
+    const newState = player.current.getState();
+    setLoading(newState !== PLAYING);
+    // console.log(`Player ${pid.current} State - ${newState}`);
+  }, [setLoading]);
 
-      const onStateChange = () => {
-        const newState = player.current.getState();
-        setLoading(newState !== PLAYING);
-        setPaused(player.current.isPaused());
-        console.log(`Player ${pid.current} State - ${newState}`);
-      };
+  // Generic PlayerEventType event listener
+  const onError = useCallback((err) => {
+    console.warn(`Player ${pid.current} Event - ERROR:`, err, player.current);
+  }, []);
 
-      const onError = (err) => {
-        console.warn(`Player ${pid.current} Event - ERROR:`, err);
-      };
+  const destroy = useCallback(() => {
+    if (!player.current) return;
 
-      player.current = create();
-      video.current.crossOrigin = 'anonymous';
-      player.current.attachHTMLVideoElement(video.current);
+    // remove event listeners
+    player.current.removeEventListener(READY, onStateChange);
+    player.current.removeEventListener(PLAYING, onStateChange);
+    player.current.removeEventListener(BUFFERING, onStateChange);
+    player.current.removeEventListener(ENDED, onStateChange);
+    player.current.removeEventListener(ERROR, onError);
 
-      player.current.addEventListener(READY, onStateChange);
-      player.current.addEventListener(PLAYING, onStateChange);
-      player.current.addEventListener(BUFFERING, onStateChange);
-      player.current.addEventListener(ENDED, onStateChange);
-      player.current.addEventListener(ERROR, onError);
+    // delete and nullify player
+    player.current.pause();
+    player.current.delete();
+    player.current = null;
+    video.current.removeAttribute('src'); // remove possible stale src
 
-      return () => {
-        player.current?.removeEventListener(READY, onStateChange);
-        player.current?.removeEventListener(PLAYING, onStateChange);
-        player.current?.removeEventListener(BUFFERING, onStateChange);
-        player.current?.removeEventListener(ENDED, onStateChange);
-        player.current?.removeEventListener(ERROR, onError);
-      };
-    }
-  }, [video]);
+    // reset player state controls to initial values
+    resetControls();
+  }, [onError, onStateChange, resetControls]);
 
-  const toggleMute = () => {
-    const muteNext = !player.current.isMuted();
-    player.current.setMuted(muteNext);
-    setMuted(muteNext);
-  };
+  const create = useCallback(() => {
+    if (!isPlayerSupported) return;
 
-  const togglePlayPause = () => {
-    if (player.current.isPaused()) {
-      player.current.play();
-    } else {
-      player.current.pause();
-    }
-    setPaused(player.current.isPaused());
+    // If a player instnace already exists, destroy it before creating a new one
+    if (player.current) destroy();
+
+    player.current = createMediaPlayer();
+    video.current.crossOrigin = 'anonymous';
+    player.current.attachHTMLVideoElement(video.current);
+
+    player.current.addEventListener(READY, onStateChange);
+    player.current.addEventListener(PLAYING, onStateChange);
+    player.current.addEventListener(BUFFERING, onStateChange);
+    player.current.addEventListener(ENDED, onStateChange);
+    player.current.addEventListener(ERROR, onError);
+  }, [destroy, onError, onStateChange]);
+
+  const load = useCallback(
+    (playbackUrl) => {
+      if (!player.current) create();
+      player.current.load(playbackUrl);
+      if (config.PLAY_IN_BACKGROUND) play();
+    },
+    [create, play]
+  );
+
+  const log = (...messages) => {
+    console.log(`Player ${pid.current}:`, ...messages);
   };
 
   return {
-    instance: player.current,
+    player: player.current,
     pid: pid.current,
     togglePlayPause,
     toggleMute,
+    destroy,
     loading,
     paused,
     muted,
-    video
+    video,
+    load,
+    play,
+    pause,
+    log
   };
+};
+
+const usePlayerControls = (player) => {
+  const [muted, setMuted] = useState(true);
+  const [paused, setPaused] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const play = useCallback(() => {
+    if (!player.current) return;
+
+    if (player.current.isPaused()) {
+      player.current.play();
+      setPaused(false);
+    }
+  }, [player]);
+
+  const pause = useCallback(() => {
+    if (!player.current) return;
+
+    if (!player.current.isPaused()) {
+      player.current.pause();
+      setPaused(true);
+    }
+  }, [player]);
+
+  const togglePlayPause = useCallback(() => {
+    if (!player.current) return;
+
+    player.current.isPaused() ? play() : pause();
+  }, [pause, play, player]);
+
+  const toggleMute = useCallback(
+    (mute = false) => {
+      if (!player.current) return;
+
+      const muteNext = mute || !player.current.isMuted();
+      player.current.setMuted(muteNext);
+      setMuted(muteNext);
+    },
+    [player]
+  );
+
+  const resetControls = useCallback(() => {
+    setMuted(true);
+    setPaused(false);
+    setLoading(true);
+  }, []);
+
+  return useMemo(
+    () => ({
+      muted,
+      paused,
+      loading,
+      toggleMute,
+      play,
+      pause,
+      togglePlayPause,
+      setLoading,
+      resetControls
+    }),
+    [loading, muted, pause, paused, play, toggleMute, togglePlayPause, resetControls]
+  );
 };
 
 export default usePlayer;

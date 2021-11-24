@@ -1,8 +1,8 @@
-
 .snackbar {
   position: absolute;
   top: 20px;
-  left: calc(50% - 46px);
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 100;
   height: 46px;
   padding-left: 20px;

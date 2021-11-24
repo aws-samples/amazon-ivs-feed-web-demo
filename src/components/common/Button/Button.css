@@ -3,6 +3,7 @@
   height: 2.75rem;
   border-radius: 50%;
   background: var(--color-mid-gray);
+  font-size: 18px;
   color: white;
   opacity: 0.7;
   border: none;
@@ -11,6 +12,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.swiper-button-lock {
+  pointer-events: none;
 }
 
 @media (hover: hover) {

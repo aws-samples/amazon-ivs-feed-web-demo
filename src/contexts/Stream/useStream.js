@@ -5,7 +5,7 @@ const useStream = () => {
   const context = useContext(StreamContext);
 
   if (!context) {
-    throw new Error('Player context must be consumed inside the Player Provider');
+    throw new Error('Stream context must be consumed inside the Stream Provider');
   }
 
   return context;

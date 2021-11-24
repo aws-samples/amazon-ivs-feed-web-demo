@@ -1,8 +1,10 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+
 import Feed from './components/feed';
-import StreamMetadata from './components/feed/stream-metadata';
+import StreamMetadata from './components/feed/StreamMetadata';
+
 import useStream from './contexts/Stream/useStream';
+import useMobileBreakpoint from './contexts/MobileBreakpoint/useMobileBreakpoint';
 import { useParams } from 'react-router-dom';
 
 import './App.css';
@@ -10,9 +12,10 @@ import './App.css';
 const feedJSON = `${process.env.PUBLIC_URL}/feed.json`;
 
 const App = () => {
-  const { setStreams, activeStream, setActiveStream, streams } = useStream();
+  const { isMobileView } = useMobileBreakpoint();
+  const { activeStream, setStreams } = useStream();
+
   const [metadataVisible, setMetadataVisible] = useState(true);
-  const isMobileView = useRef(false);
   const metadataRef = useRef();
   const params = useParams();
 
@@ -21,8 +24,11 @@ const App = () => {
       try {
         const response = await fetch(feedJSON);
         if (response.ok) {
-          const data = await response.json();
-          setStreams(data.streams);
+          const { streams } = await response.json();
+          const paramsStreamId = parseInt(params.id);
+          const streamIds = streams.map((s) => s.id);
+          const initialStreamId = streamIds.includes(paramsStreamId) ? paramsStreamId : 0;
+          setStreams(streams, initialStreamId);
         } else throw new Error(response.statusText);
       } catch (e) {
         console.error(e);
@@ -30,41 +36,18 @@ const App = () => {
     };
 
     fetchStreams();
-  }, [setStreams]);
+  }, [setStreams]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Update the page URL for the active stream
   useEffect(() => {
-    if (streams && streams.length > 0 && activeStream.id !== params.id) {
-      const id =
-        isNaN(parseInt(params.id)) || params.id > streams.length - 1 ? 0 : params.id;
-      setActiveStream(id);
-    }
-  }, [streams]);
-
-  useEffect(() => {
-    if (activeStream && activeStream.id !== params.id) {
-      const obj = { Page: activeStream.id, Url: activeStream.id };
+    const activeStreamId = activeStream?.data.id;
+    if (activeStream && activeStreamId !== params.id) {
+      const obj = { Page: activeStreamId, Url: activeStreamId };
       window.history.pushState(obj, obj.Page, obj.Url);
     }
-  }, [activeStream]);
+  }, [activeStream, params.id]);
 
-  useEffect(() => {
-    const handleWindowResize = () => {
-      if (window.innerWidth < 840 && !isMobileView.current) {
-        // Switch to mobile view
-        isMobileView.current = true;
-        toggleMetadata(false, false);
-      }
-      if (window.innerWidth >= 840 && isMobileView.current) {
-        // Switch to desktop view
-        isMobileView.current = false;
-        toggleMetadata(true, false);
-      }
-    };
-
-    handleWindowResize();
-    window.addEventListener('resize', handleWindowResize);
-    return () => window.removeEventListener('resize', handleWindowResize);
-  }, []);
+  useEffect(() => toggleMetadata(!isMobileView, false), [isMobileView]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleMetadata = useCallback(
     (show = !metadataVisible, transition = true) => {
@@ -74,7 +57,7 @@ const App = () => {
 
         if (show) {
           // Show metadata
-          style.height = isMobileView.current ? `${contentHeight}px` : '100%';
+          style.height = isMobileView ? `${contentHeight}px` : '100%';
           metadataRef.current.addEventListener(
             'transitionend',
             () => (style.height = null),
@@ -93,19 +76,17 @@ const App = () => {
         setMetadataVisible(show);
       }
     },
-    [metadataVisible]
+    [metadataVisible, isMobileView]
   );
 
   return (
     <div className="grid">
       <div className="feed">
-        <Feed toggleMetadata={toggleMetadata} />
+        <Feed toggleMetadata={toggleMetadata} metadataVisible={metadataVisible} />
       </div>
-      {!!activeStream && (
-        <div ref={metadataRef} className="metadata">
-          <StreamMetadata toggleMetadata={toggleMetadata} />
-        </div>
-      )}
+      <div className="metadata" ref={metadataRef}>
+        <StreamMetadata toggleMetadata={toggleMetadata} />
+      </div>
     </div>
   );
 };
