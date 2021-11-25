@@ -141,8 +141,8 @@ const Player = ({
   return (
     <div
       className="player-container"
-      inert={!isVisible.current ? '' : null}
       id={`${state.toLowerCase()}-player-${pid}`}
+      inert={!isVisible.current && !isMobileOS() ? '' : null}
     >
       <div
         className={`player-video ${isMobileView && metadataVisible ? 'underlay' : ''}`}
