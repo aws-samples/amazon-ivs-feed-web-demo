@@ -1,7 +1,6 @@
-# Amazon IVS React Feed app
+# Amazon IVS Feed Web Demo
 
-A demo web application intended as an educational tool for demonstrating how you can build a very simple scrolling feed app, load and auto-play Amazon IVS live streams as users scroll down the page.
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A demo web application intended as an educational tool for demonstrating how to build a simple feed app, which loads and auto-plays an infinitely scrolling feed of Amazon IVS live streams.
 
 <img src="feed-demo.png" alt="Amazon IVS Feed demo" />
 
@@ -9,12 +8,12 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Getting Started
 
-In the project directory, run:
+In the project directory, run the following commands:
 
-### `yarn`
+### `npm install`
 Installs the dependencies of the project.
 
-### `yarn start`
+### `npm start`
 
 Runs the app in the development mode. Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
@@ -23,7 +22,7 @@ The page will automatically reload as you make edits. You will also see any lint
 
 ### Using your own Live streams
 
-This demo loads streams and stream metadata from a local file (`feed.json`), which provides a json object containing an array of stream objects. Each stream object represents one video in the feed. To load your own IVS streams, you will need to modify `feedJSON` in the `App.jsx` file, to load your own json file, which should follow this structure:
+This demo loads streams and stream metadata from a local file (`public/feed.json`), which provides a json object containing an array of stream objects. Each stream object represents one video in the feed. To load your own IVS streams, you will need to modify `feedJSON` in the `App.jsx` file, to load your own json file, which should follow this structure:
 
 ```
 {
