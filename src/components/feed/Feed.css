@@ -1,15 +1,16 @@
-.feed {
-  display: grid;
-  grid-template-columns: 1fr;
-  row-gap: 20vh;
-  column-gap: 200px;
-  place-items: center;
+.feed-content {
   width: 100%;
-  padding: 70px 100px;
+  height: 100%;
 }
 
-@media (max-width: 767px) {
-  .feed {
-    padding: 70px 16px;
-  }
+.swiper {
+  width: 100%;
+  height: 100%;
+}
+
+.swiper-slide {
+  background: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

@@ -1,0 +1,27 @@
+@keyframes rotate {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+.spinner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.spinner svg {
+  position: relative;
+  animation: rotate 1s linear infinite;
+  height: 42px;
+  width: 42px;
+}

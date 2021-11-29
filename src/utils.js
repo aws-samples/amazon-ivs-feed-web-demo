@@ -10,9 +10,7 @@ const getRandomColor = () => {
 };
 
 const getTimeSince = (dateTime) => {
-  let secondsDiff = Math.floor(
-    (new Date() - new Date(dateTime).getTime()) / 1000,
-  );
+  let secondsDiff = Math.floor((new Date() - new Date(dateTime).getTime()) / 1000);
 
   const days = Math.floor(secondsDiff / 86400);
   secondsDiff -= days * 86400;
@@ -46,32 +44,22 @@ const getTimeSince = (dateTime) => {
   return timeSince;
 };
 
-const hexToRgb = (hex) => hex
-  .replace(
-    /^#?([a-f\d])([a-f\d])([a-f\d])$/i,
-    (m, r, g, b) => `#${r + r + g + g + b + b}`,
-  )
-  .substring(1)
-  .match(/.{2}/g)
-  .map((x) => parseInt(x, 16));
+const isMobileOS = () => {
+  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
 
-const isElementInViewport = (el) => {
-  const { innerHeight, innerWidth } = window;
-  const { clientHeight, clientWidth } = document.documentElement;
+  const isWindowsPhone = /windows phone/i.test(userAgent);
+  const isAndroid = /android/i.test(userAgent);
+  const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
 
-  const rect = el.getBoundingClientRect();
+  return isWindowsPhone || isAndroid || isIOS;
+};
 
-  return (
-    rect.top >= 0
-    && rect.left >= 0
-    && rect.bottom <= (innerHeight || clientHeight)
-    && rect.right <= (innerWidth || clientWidth)
+const isCanvasBlank = (canvas) => {
+  const context = canvas.getContext('2d');
+  const pixelBuffer = new Uint32Array(
+    context.getImageData(0, 0, canvas.width, canvas.height).data.buffer
   );
+  return !pixelBuffer.some((color) => color !== 0);
 };
 
-export {
-  getRandomColor,
-  getTimeSince,
-  hexToRgb,
-  isElementInViewport,
-};
+export { getRandomColor, getTimeSince, isMobileOS, isCanvasBlank };

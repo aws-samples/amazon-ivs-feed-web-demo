@@ -1,94 +1,160 @@
 import React, { useEffect, useRef, useState } from 'react';
-import StreamPlayer from './stream-player';
+import { Swiper, SwiperSlide } from 'swiper/react/swiper-react';
+import { Navigation, Keyboard, Mousewheel, A11y } from 'swiper';
+
+import Player from './Player';
+import useStream from '../../contexts/Stream/useStream';
+import useMobileBreakpoint from '../../contexts/MobileBreakpoint/useMobileBreakpoint';
+
+import config from '../../config';
 
 import './Feed.css';
 
-const Feed = (props) => {
-  const { IVSPlayer } = window;
-  const { isPlayerSupported } = IVSPlayer;
+const PLAYER_TYPES = Object.freeze({ ACTIVE: 'ACTIVE', NEXT: 'NEXT', PREV: 'PREV' });
+const { SWIPE_DURATION } = config;
 
-  const { streams } = props;
+const Feed = ({ toggleMetadata, metadataVisible }) => {
+  const [swiper, setSwiper] = useState(null);
+  const { isMobileView } = useMobileBreakpoint();
+  const { activeStream, direction, throttledGotoNextStream, throttledGotoPrevStream } =
+    useStream();
 
-  const [activeStreamId, setActiveStreamId] = useState();
-  const [loading, setLoading] = useState(false);
-  const [visibleVideos, setVisibleVideos] = useState([]);
-
-  const player = useRef(null);
+  /**
+   * A mapping to keep track of each player's playbackUrl and state.
+   *
+   * Player index position will not change, but their urls and types
+   * may change when a transition occurs.
+   */
+  const [playersData, setPlayersData] = useState([
+    /* [0] P1 */ { playbackUrl: '', state: PLAYER_TYPES.ACTIVE },
+    /* [1] P2 */ { playbackUrl: '', state: PLAYER_TYPES.NEXT },
+    /* [2] P3 */ { playbackUrl: '', state: PLAYER_TYPES.PREV }
+  ]);
 
   useEffect(() => {
-    const { ENDED, PLAYING, READY } = IVSPlayer.PlayerState;
-    const { ERROR } = IVSPlayer.PlayerEventType;
+    if (activeStream) {
+      const [activePlaybackUrl, nextPlaybackUrl, prevPlaybackUrl] = [
+        activeStream,
+        activeStream.next,
+        activeStream.prev
+      ].map(({ data }) => data.stream.playbackUrl);
 
-    if (!isPlayerSupported) {
-      console.warn(
-        'The current browser does not support the Amazon IVS player.',
-      );
+      let newPlayersData = [...playersData];
 
-      return;
+      if (direction === 'next') {
+        newPlayersData.unshift(newPlayersData.pop()); // shift playersData down
+      } else if (direction === 'prev') {
+        newPlayersData.push(newPlayersData.shift()); // shift playersData up
+      }
+
+      newPlayersData = newPlayersData.map((player) => {
+        switch (player.state) {
+          case PLAYER_TYPES.ACTIVE:
+            return { ...player, playbackUrl: activePlaybackUrl };
+          case PLAYER_TYPES.NEXT:
+            return { ...player, playbackUrl: nextPlaybackUrl };
+          case PLAYER_TYPES.PREV:
+            return { ...player, playbackUrl: prevPlaybackUrl };
+          default:
+            return player;
+        }
+      });
+
+      setPlayersData(newPlayersData);
     }
+  }, [activeStream]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const onStateChange = () => {
-      const newState = player.current.getState();
-
-      console.log(`Player State - ${newState}`);
-
-      setLoading(newState !== PLAYING);
-    };
-
-    const onError = (err) => {
-      console.warn('Player Event - ERROR:', err);
-    };
-
-    player.current = IVSPlayer.create();
-
-    player.current.addEventListener(READY, onStateChange);
-    player.current.addEventListener(PLAYING, onStateChange);
-    player.current.addEventListener(ENDED, onStateChange);
-    player.current.addEventListener(ERROR, onError);
-
-    return () => {
-      player.current.removeEventListener(READY, onStateChange);
-      player.current.removeEventListener(PLAYING, onStateChange);
-      player.current.removeEventListener(ENDED, onStateChange);
-      player.current.removeEventListener(ERROR, onError);
-    };
-  }, [IVSPlayer, isPlayerSupported]);
-
-  const setStream = (id, visible) => {
-    const index = visibleVideos.indexOf(id);
-
-    if (index > -1 && visible) return;
-
-    let videos = [...visibleVideos];
-
-    if (visible) {
-      videos.push(id);
-    } else {
-      videos.splice(index, 1);
-    }
-
-    setLoading(true);
-    setVisibleVideos(videos);
-    setActiveStreamId(videos[videos.length - 1]);
+  const currentActiveIndex = useRef(null);
+  const gotoStream = (swiper, event) => {
+    setTimeout(() => {
+      const slideChanged = currentActiveIndex.current !== swiper.activeIndex;
+      if (slideChanged) {
+        if (
+          (swiper && swiper.swipeDirection === 'next') || // Touch: swipe up
+          event?.wheelDeltaY < 0 || // MouseWheel: vertical scroll up
+          event === 40 || // Keyboard: ArrowDown (keyCode 40)
+          event === 34 || // Keyboard: PageDown (keyCode 34)
+          event === 'next' // Other: directly set swipe direction (i.e. next nav. button)
+        ) {
+          throttledGotoNextStream();
+          currentActiveIndex.current = swiper.activeIndex;
+        } else if (
+          (swiper && swiper.swipeDirection === 'prev') || // Touch: swipe down
+          event?.wheelDeltaY > 0 || // MouseWheel: vertical scroll down
+          event === 38 || // Keyboard: ArrowUp (keyCode 38)
+          event === 33 || // Keyboard: PageUp (keyCode 33)
+          event === 'prev' // Other: directly set swipe direction (i.e. prev nav. button)
+        ) {
+          throttledGotoPrevStream();
+          currentActiveIndex.current = swiper.activeIndex;
+        }
+      }
+    });
   };
 
-  if (!isPlayerSupported) {
+  if (!window.IVSPlayer.isPlayerSupported) {
+    console.warn('The current browser does not support the Amazon IVS player.');
     return null;
   }
 
   return (
-    <div className="feed">
-      {streams.map((stream) => (
-        <StreamPlayer
-          key={stream.id}
-          active={stream.id === activeStreamId}
-          loading={stream.id === activeStreamId && loading}
-          player={player.current}
-          streamData={stream}
-          setStream={setStream}
-        />
-      ))}
-    </div>
+    !!activeStream &&
+    playersData.every(({ playbackUrl }) => !!playbackUrl) && (
+      <div className="feed-content">
+        <Swiper
+          /* swiper config */
+          loop
+          watchSlidesProgress
+          direction={'vertical'}
+          simulateTouch={false}
+          speed={SWIPE_DURATION}
+          preventInteractionOnTransition
+          /* swiper modules config */
+          modules={[Keyboard, Navigation, Mousewheel, A11y]}
+          keyboard
+          navigation={{ prevEl: '#prev-stream', nextEl: '#next-stream' }}
+          mousewheel={{ forceToAxis: true, thresholdTime: 500, thresholdDelta: 50 }}
+          a11y={{
+            nextSlideMessage: 'Next stream',
+            prevSlideMessage: 'Previous stream',
+            slideLabelMessage: 'Stream'
+          }}
+          /* event handlers */
+          onInit={(swiper) => {
+            currentActiveIndex.current = swiper.activeIndex;
+            setSwiper(swiper);
+          }}
+          onResize={(swiper) => {
+            if (metadataVisible && isMobileView) {
+              swiper.disable();
+            } else swiper.enable();
+            swiper.navigation.init(); // reinitialize nav buttons when unhidden (mobile)
+          }}
+          onTouchEnd={gotoStream} // swiping events
+          onKeyPress={gotoStream} // keyboard events
+          onScroll={gotoStream} // mousewheel events
+          onSlideChangeTransitionStart={(swiper) => swiper.disable()}
+          onSlideChangeTransitionEnd={(swiper) => swiper.enable()}
+        >
+          {playersData.map((player, i) => (
+            <SwiperSlide key={`player-${i + 1}`}>
+              {({ isActive, isVisible }) => (
+                <Player
+                  id={i + 1}
+                  {...player}
+                  swiper={swiper}
+                  isPlayerActive={isActive}
+                  isPlayerVisible={isVisible}
+                  toggleMetadata={toggleMetadata}
+                  metadataVisible={metadataVisible}
+                  gotoStream={(dir) => gotoStream(swiper, dir)}
+                />
+              )}
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </div>
+    )
   );
 };
 

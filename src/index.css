@@ -1,3 +1,45 @@
+:root {
+  --height-min-mobile-feed: 300px;
+  --width-desktop-metadata: 420px;
+
+  /* Palette colors - Based on Tachyons.css */
+  --color-black: #000;
+  /* --color-near-black: #0F1112; */
+
+  --color-dark-gray: #222222;
+  --color-mid-gray: #333333;
+  --color-gray: #8d9ca7;
+
+  --color-silver: #999999;
+  --color-dark-silver: #5c5c5c;
+
+  --color-near-white: #eeeeee;
+  --color-white: #fff;
+
+  --color-red: #dc3654;
+
+  --color-green: #1bc718;
+  /* --color-dark-red: #E7040F;
+  --color-light-red: #FF725C;
+
+  --color-orange: #FF6300;
+  --color-gold: #FFB700;
+  --color-yellow: #FFD700;
+  --color-light-yellow: #FBF1A9;
+
+  --color-purple: #5E2CA5;
+  --color-light-purple: #A463F2;
+
+  --color-dark-pink: #D5008F;
+  --color-hot-pink: #FF41B4;
+  --color-pink: #FF80CC;
+  --color-light-pink: #FFA3D7;
+
+  --color-dark-green: #137752;
+  --color-green: #0FD70B;
+  --color-light-green: #9EEBCF; */
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -7,12 +49,15 @@
 button {
   background: none;
   border: none;
-  outline: none;
   cursor: pointer;
+  user-select: none;
 }
 
 body {
   min-width: 320px;
   background-color: #000;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, Roboto, 'Segoe UI',
+    Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  overscroll-behavior: contain;
+  overflow: hidden;
 }
