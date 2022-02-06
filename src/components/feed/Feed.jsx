@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react/swiper-react';
+import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Keyboard, Mousewheel, A11y } from 'swiper';
 
 import Player from './Player';

@@ -16,8 +16,8 @@ ReactDOM.render(
       <MobileBreakpointProvider>
         <StreamProvider>
           <Routes>
-            <Route exact path="/" element={<Navigate to="/0" />}></Route>
-            <Route path="/:id" element={<App />}></Route>
+            <Route path="/" element={<Navigate replace to="/0" />} />
+            <Route path="/:id" element={<App />} />
           </Routes>
         </StreamProvider>
       </MobileBreakpointProvider>

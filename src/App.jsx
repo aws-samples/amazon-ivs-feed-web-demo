@@ -5,7 +5,7 @@ import StreamMetadata from './components/feed/StreamMetadata';
 
 import useStream from './contexts/Stream/useStream';
 import useMobileBreakpoint from './contexts/MobileBreakpoint/useMobileBreakpoint';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 import './App.css';
 
@@ -18,6 +18,7 @@ const App = () => {
   const [metadataVisible, setMetadataVisible] = useState(true);
   const metadataRef = useRef();
   const params = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStreams = async () => {
@@ -40,12 +41,13 @@ const App = () => {
 
   // Update the page URL for the active stream
   useEffect(() => {
-    const activeStreamId = activeStream?.data.id;
-    if (activeStream && activeStreamId !== params.id) {
-      const obj = { Page: activeStreamId, Url: activeStreamId };
-      window.history.pushState(obj, obj.Page, obj.Url);
+    if (!activeStream) return;
+
+    const activeStreamId = activeStream.data.id;
+    if (activeStreamId !== params.id) {
+      navigate(`/${activeStreamId}`, { replace: true });
     }
-  }, [activeStream, params.id]);
+  }, [activeStream, params.id, navigate]);
 
   useEffect(() => toggleMetadata(!isMobileView, false), [isMobileView]); // eslint-disable-line react-hooks/exhaustive-deps
 
