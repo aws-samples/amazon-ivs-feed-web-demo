@@ -1,7 +1,7 @@
 .player-buttons {
   position: absolute;
   right: 0;
-  margin-right: 1rem;
+  margin-inline-end: 1rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -13,6 +13,11 @@
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   -webkit-transform: translate3d(0, 0, 0);
+}
+
+[dir='rtl'] .player-buttons {
+  right: unset;
+  left: 0;
 }
 
 .divider {
