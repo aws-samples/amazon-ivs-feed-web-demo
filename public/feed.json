@@ -5,7 +5,7 @@
       "stream": {
         "channelArn": "arn:aws:ivs:us-west-2:XXXXXXXXXXXX:channel/XXXXXXXXXXXX",
         "health": "HEALTHY",
-        "playbackUrl": "https://fcc3ddae59ed.us-west-2.playback.live-video.net/api/video/v1/us-west-2.893648527354.channel.YtnrVcQbttF0.m3u8",
+        "playbackUrl": "https://4c62a87c1810.us-west-2.playback.live-video.net/api/video/v1/us-west-2.049054135175.channel.XNWkDNKHdq4u.m3u8",
         "startTime": "2021-11-24T17:49:12.527Z",
         "state": "LIVE",
         "viewerCount": 1
